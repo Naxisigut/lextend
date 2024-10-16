@@ -3,9 +3,10 @@ import HelloWorld from '@/components/HelloWorld.vue';
 </script>
 
 <template>
-  <HelloWorld msg="WXT + Vue New Tab" />
+  <div>
+    <HelloWorld />
+  </div>
 </template>
 
-<style scoped>
-/* 可以添加任何特定于新标签页的样式 */
+<style scoped lang="scss">
 </style>
