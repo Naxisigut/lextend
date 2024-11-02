@@ -30,7 +30,7 @@
           </div>
 
           <!-- 主要内容 -->
-          <div class="flex-1 p-8 overflow-y-auto">
+          <div class="flex-1 p-8 overflow-y-auto main-container relative">
             <Main />
           </div>
         </div>
@@ -64,4 +64,6 @@ const bookmarks = reactive([
 ])
 </script>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+
+</style>
