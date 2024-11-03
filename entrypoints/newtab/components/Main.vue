@@ -1,15 +1,24 @@
 <template>
   <div class="h-full overflow-y-auto">
     <div v-if="!cpnt" class="placeholder absolute inset-0 m-auto"></div>
-    <component :is="cpnt" class=""></component>
+    <component :is="resolveComponent(cpnt)" class=""></component>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
-import MainTest from './MainTest.vue'
-const cpnt = ref(MainTest)
+import { ref, markRaw } from 'vue';
+import BookMarks from '../views/BookMarks.vue';
 
+const cpnt = defineModel<string | null>('cpnt', { required: false })
+
+// 组件映射表
+const componentMap: Record<string, any> = {
+  'BookMarks': markRaw(BookMarks),
+  // 可以添加更多组件...
+}
+
+// 解析组件函数
+const resolveComponent = (name: string | null) =>  name && componentMap[name]
 </script>
 
 <style lang="scss" scoped>

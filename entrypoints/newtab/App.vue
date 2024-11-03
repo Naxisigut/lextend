@@ -5,19 +5,33 @@
         <!-- 左侧边栏 - 在 md 断点以下隐藏 -->
         <div class="hidden md:flex w-64 border-r bg-white min-h-screen flex-col">
           <!-- 搜索栏 -->
-          <div class="">
-            <SearchBar />
-          </div>
+          <SearchBar />
 
-          <!-- 收藏列表 -->
+          <!-- 常用功能 -->
           <div class="flex-1 overflow-y-auto p-4">
-            <div class="space-y-3">
-              <DisplayItem 
-                v-for="item, idx in bookmarks" 
-                :key="idx" 
-                :item="item"
-                class="!shadow-none hover:bg-gray-50"
-              />
+            <div class="space-y-1">
+              <FunctionRow @click="onFunction('BookMarks')">
+                <span>常用网站</span>
+                <template #prefix>
+                  <BookmarkIcon class="w-5 h-5 text-gray-600" />
+                </template> 
+                <template #suffix>
+                  <span class="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-1">
+                    {{ bookmarks.length }}
+                  </span>
+                </template>
+              </FunctionRow>
+              <FunctionRow>
+                常用网站
+                <template #prefix>
+                  <BookmarkIcon class="w-5 h-5 text-gray-600" />
+                </template> 
+                <template #suffix>
+                  <span class="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-1">
+                    {{ bookmarks.length }}
+                  </span>
+                </template>
+              </FunctionRow>
             </div>
           </div>
         </div>
@@ -31,7 +45,7 @@
 
           <!-- 主要内容 -->
           <div class="h-0 flex-1 p-8 main-container relative overflow-x-visible">
-            <Main />
+            <Main v-model:cpnt="cpnt" />
           </div>
         </div>
       </div>
@@ -40,28 +54,19 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive } from 'vue';
-import DisplayItem from './components/DisplayItem.vue';
+import { reactive, ref } from 'vue';
 import SearchBar from './components/SearchBar.vue';
 import Main from './components/Main.vue';
+import FunctionRow from './components/FunctionRow.vue';
+import { BookmarkIcon } from 'lucide-vue-next';
+import bookmarks from './static/bookmarks';
 
-const bookmarks = reactive([
-  {
-    title: 'UnoCSS',
-    desc: 'UnoCSS',
-    href: 'http://unocss.cn/'
-  },
-  {
-    title: 'Shadcn Vue',
-    desc: 'Shadcn Vue',
-    href: 'https://www.shadcn-vue.com/docs/components/accordion.html'
-  },
-  {
-    title: 'TailWindCSS',
-    desc: 'TailWindCSS',
-    href: 'https://www.tailwindcss.cn/docs/installation'
-  },
-])
+const cpnt = ref<string | null>(null)
+
+const onFunction = (name: string) => {
+  cpnt.value = name
+}
+
 </script>
 
 <style scoped lang="scss">
