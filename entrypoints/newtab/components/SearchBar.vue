@@ -5,7 +5,7 @@
       <div
         class="relative flex items-center w-full rounded-md border border-input bg-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
         <!-- 搜索引擎选择 -->
-        <div class="w-16">
+        <div @mousewheel="handleScroll">
           <Select v-model="selectedEngine">
             <SelectTrigger class="h-10 border-0 focus:ring-0 focus:ring-offset-0 bg-transparent">
               <SelectValue>
@@ -57,9 +57,13 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'// 引入本地图标
+} from '@/components/ui/select'
 import baiduIcon from '@/assets/icons/baidu.png'
 import googleIcon from '@/assets/icons/google.png'
+
+// 定义搜索引擎列表
+const engines = ['baidu', 'google'] as const
+type Engine = typeof engines[number]
 
 const engineIcons = {
   baidu: baiduIcon,
@@ -67,12 +71,24 @@ const engineIcons = {
 }
 
 const searchText = ref('')
-const selectedEngine = ref('baidu')
+const selectedEngine = ref<Engine>('baidu')
 
-// const engineIcons = {
-//   baidu: 'https://www.baidu.com/favicon.ico',
-//   google: 'https://www.google.com/favicon.ico'
-// }
+const handleScroll = (e: WheelEvent) => {
+  e.preventDefault() // 阻止默认滚动行为
+  
+  const currentIndex = engines.indexOf(selectedEngine.value)
+  if (e.deltaY > 0) {
+    // 向下滚动，但不超过最后一个
+    if (currentIndex < engines.length - 1) {
+      selectedEngine.value = engines[currentIndex + 1]
+    }
+  } else {
+    // 向上滚动，但不超过第一个
+    if (currentIndex > 0) {
+      selectedEngine.value = engines[currentIndex - 1]
+    }
+  }
+}
 
 const handleSearch = () => {
   if (!searchText.value.trim()) return
