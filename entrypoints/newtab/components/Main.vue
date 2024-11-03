@@ -1,12 +1,14 @@
 <template>
-  <div v-if="!cpnt" class="placeholder absolute inset-0 m-auto"></div>
-  <component :is="cpnt" class=""></component>
+  <div class="h-full overflow-y-auto">
+    <div v-if="!cpnt" class="placeholder absolute inset-0 m-auto"></div>
+    <component :is="cpnt" class=""></component>
+  </div>
 </template>
 
 <script lang="ts" setup>
 import { ref } from 'vue';
 import MainTest from './MainTest.vue'
-const cpnt = ref(null)
+const cpnt = ref(MainTest)
 
 </script>
 

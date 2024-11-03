@@ -1,7 +1,7 @@
 ﻿<template>
   <div class="min-h-screen bg-gray-50">
     <div class="container mx-auto">
-      <div class="flex min-h-screen">
+      <div class="flex h-screen">
         <!-- 左侧边栏 - 在 md 断点以下隐藏 -->
         <div class="hidden md:flex w-64 border-r bg-white min-h-screen flex-col">
           <!-- 搜索栏 -->
@@ -30,7 +30,7 @@
           </div>
 
           <!-- 主要内容 -->
-          <div class="flex-1 p-8 overflow-y-auto main-container relative">
+          <div class="h-0 flex-1 p-8 main-container relative overflow-x-visible">
             <Main />
           </div>
         </div>
