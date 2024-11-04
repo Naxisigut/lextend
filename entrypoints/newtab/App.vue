@@ -5,7 +5,7 @@
         <!-- 左侧边栏 - 在 md 断点以下隐藏 -->
         <div class="hidden md:flex w-64 border-r bg-white min-h-screen flex-col">
           <!-- 搜索栏 -->
-          <SearchBar />
+          <SearchBar ref="searchBarLeftRef" />
 
           <!-- 常用功能 -->
           <div class="flex-1 overflow-y-auto p-4">
@@ -21,10 +21,10 @@
                 <span>常用网站</span>
                 <template #prefix>
                   <Globe class="w-4 h-4 text-gray-600" />
-                </template> 
+                </template>
                 <template #suffix>
                   <span class="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-1">
-                    {{ websites.Length }}
+                    {{ websites.Count }}
                   </span>
                 </template>
               </FunctionRow>
@@ -36,7 +36,7 @@
         <div class="flex-1 flex flex-col">
           <!-- 在中等屏幕以下显示的搜索栏 -->
           <div class="md:hidden p-4">
-            <SearchBar />
+            <SearchBar ref="searchBarRightRef" />
           </div>
 
           <!-- 主要内容 -->
@@ -58,13 +58,31 @@ import { Globe, Home, House } from 'lucide-vue-next';
 import websites from './static/websites';
 
 const cpnt = ref<string | null>(null)
-
 const onFunction = (name: string | null) => {
   cpnt.value = name
 }
 
+
+
+
+const searchBarLeftRef = ref<InstanceType<typeof SearchBar> | null>(null)
+const searchBarRightRef = ref<InstanceType<typeof SearchBar> | null>(null)
+const focusVisibleBar = () => {
+  if (searchBarLeftRef.value && searchBarRightRef.value) {
+    const leftEl = searchBarLeftRef.value.$el
+    const rightEl = searchBarRightRef.value.$el
+
+    /* checkVisibility: 检查元素是否可见, 无论其可见性是否被其祖先元素的样式影响 */
+    leftEl.checkVisibility() && searchBarLeftRef.value.focus()
+    rightEl.checkVisibility() && searchBarRightRef.value.focus()
+  }
+}
+
+
+onMounted(() => {
+  focusVisibleBar()
+})
+
 </script>
 
-<style scoped lang="scss">
-
-</style>
+<style scoped lang="scss"></style>

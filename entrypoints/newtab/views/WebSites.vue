@@ -25,12 +25,6 @@
 <script setup lang="ts">
 import websites from '../static/websites';
 import { Globe } from 'lucide-vue-next';
-
-websites.Data.forEach(group => {
-  group.data.forEach(website => {
-    console.log(111, website.title[0]);
-  })
-})
 </script>
 
 <style lang="scss" scoped>

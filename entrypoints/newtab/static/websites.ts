@@ -42,7 +42,7 @@ const Resource: Website[] = [
 ]
 
 const Groups = [ FrontEnd, Resource ]
-const Length = Groups.reduce((acc, curr) => acc + curr.length, 0)
+const Count = Groups.reduce((acc, curr) => acc + curr.length, 0)
 
 
 export default {
@@ -56,7 +56,7 @@ export default {
       data: Resource
     },
   ],
-  Length 
+  Count 
 }
 
 
