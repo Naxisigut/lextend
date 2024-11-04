@@ -5,6 +5,8 @@
 </template>
 
 <script setup lang="ts">
+import websites from '../static/websites';
+
 </script>
 
 <style lang="scss" scoped>

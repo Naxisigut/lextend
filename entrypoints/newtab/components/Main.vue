@@ -7,13 +7,13 @@
 
 <script lang="ts" setup>
 import { ref, markRaw } from 'vue';
-import BookMarks from '../views/BookMarks.vue';
+import WebSites from '../views/WebSites.vue';
 
-const cpnt = defineModel<string | null>('cpnt', { required: false })
+const cpnt = defineModel<string | null>('cpnt', { required: true })
 
 // 组件映射表
 const componentMap: Record<string, any> = {
-  'BookMarks': markRaw(BookMarks),
+  'WebSites': markRaw(WebSites),
   // 可以添加更多组件...
 }
 
