@@ -23,8 +23,26 @@ export default defineConfig({
       ],
     },
   },
+  shortcuts: [
+    // [/^btn-(.*)$/, ([, c]) => `bg-[${c}] text-white`],
+  ],
   theme: {
-    container: {
+    animation: {
+      keyframes: {
+        // rainbow: "{0% {--vp-c-brand-1: #00a98e;--vp-c-brand-next: #009ff7} 100% {--vp-c-brand-1: #ef5992;--vp-c-brand-next: #c6811e}}",
+      },
+      durations: {
+        // rainbow: '6s',
+      },
+      timingFns: {
+        // rainbow: 'linear',
+      },
+      counts: {
+        // rainbow: "infinite",
+      },
+    },
+    // container类在各个断点的最大宽度
+    container: { 
       center: true,
       padding: '2rem',
       maxWidth: {

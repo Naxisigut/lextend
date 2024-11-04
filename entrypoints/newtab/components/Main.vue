@@ -27,7 +27,7 @@ const resolveComponent = (name: string | null) =>  name && componentMap[name]
   height: 320px;
   background-image: linear-gradient(-45deg, var(--vp-c-brand-1) 30%, var(--vp-c-brand-next));
   filter: blur(120px);
-  animation: rainbow 6s linear infinite;
+  animation: rainbow;
 
   opacity: .8;
   transition: opacity 1s ease;

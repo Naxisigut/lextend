@@ -10,6 +10,13 @@
           <!-- 常用功能 -->
           <div class="flex-1 overflow-y-auto p-4">
             <div class="space-y-1">
+              <FunctionRow @click="onFunction(null)">
+                首页
+                <template #prefix>
+                  <House class="w-4 h-5 text-gray-600" />
+                </template>
+              </FunctionRow>
+
               <FunctionRow @click="onFunction('WebSites')" :active="cpnt === 'WebSites'">
                 <span>常用网站</span>
                 <template #prefix>
@@ -17,18 +24,7 @@
                 </template> 
                 <template #suffix>
                   <span class="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-1">
-                    {{ websites.length }}
-                  </span>
-                </template>
-              </FunctionRow>
-              <FunctionRow>
-                常用网站
-                <template #prefix>
-                  <Globe class="w-4 h-5 text-gray-600" />
-                </template> 
-                <template #suffix>
-                  <span class="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-1">
-                    {{ websites.length }}
+                    {{ websites.Length }}
                   </span>
                 </template>
               </FunctionRow>
@@ -58,12 +54,12 @@ import { reactive, ref } from 'vue';
 import SearchBar from './components/SearchBar.vue';
 import Main from './components/Main.vue';
 import FunctionRow from './components/FunctionRow.vue';
-import { Globe } from 'lucide-vue-next';
+import { Globe, Home, House } from 'lucide-vue-next';
 import websites from './static/websites';
 
 const cpnt = ref<string | null>(null)
 
-const onFunction = (name: string) => {
+const onFunction = (name: string | null) => {
   cpnt.value = name
 }
 
