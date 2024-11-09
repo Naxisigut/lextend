@@ -3,7 +3,7 @@
     <DialogTrigger v-if="showTrigger">
       <Button>{{ props.triggerText }}</Button>
     </DialogTrigger>
-    <DialogContent>
+    <DialogContent class="min-w-[80vw] sm:min-w-[500px] md:min-w-[600px] lg:min-w-[60vw]">
       <DialogHeader v-if="showHeader">
         <DialogTitle>{{ props.title }}</DialogTitle>
       </DialogHeader>

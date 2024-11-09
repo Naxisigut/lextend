@@ -1,14 +1,17 @@
 <template>
-  <div class="mt-4">
-    <Input placeholder="输入关键词搜索" v-model="keyword" @input="search" />
-    <div>
-      <template v-for="item in searchRes" :key="item.title">
-        <div class="text-sm font-medium text-muted-foreground">{{ item.title }}</div>
-        <div class="flex flex-wrap gap-2">
-          <template v-for="website in item.data" :key="website.title">
-            <a :href="website.href" class="text-sm text-primary hover:underline">{{ website.title }}</a>
-          </template>
-        </div>
+  <!-- <div class="mt-4 max-w-[80vw] sm:w-[500px] md:w-[600px] lg:w-[60vw]"> -->
+  <div class="mt-4 w-full">
+    <Input class="" placeholder="输入关键词搜索" v-model="keyword" @input="search" />
+    <div class="mt-2 max-h-[70vh] overflow-y-auto">
+      <template v-for="group in searchRes" :key="group.title">
+        <template v-if="group.data.length > 0">
+          <div class="text-lg font-semibold text-muted-foreground">{{ group.title }}</div>
+          <div class="grid grid-cols-[repeat(auto-fill,minmax(100px,auto))] gap-2">
+            <template v-for="website in group.data" :key="website.title">
+              <WebSiteItem :website="website" />
+            </template>
+          </div>
+        </template>
       </template>
     </div>
   </div>
@@ -18,6 +21,7 @@
 import { Input } from '@/components/ui/input';
 import { ref } from 'vue';
 import { default as websites, type Website } from '../../static/websites';
+import WebSiteItem from '../WebSiteItem.vue';
 type SearchGroupRes = {
   title: string
   data: Array<Website>
@@ -50,6 +54,4 @@ const search = () => {
 
 </script>
 
-<style lang="scss" scoped>
-
-</style>
+<style lang="scss" scoped></style>
