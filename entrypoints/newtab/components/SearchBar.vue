@@ -44,7 +44,14 @@
       </button>
     </div>
 
-    <Dialog title="搜索" v-model:open="isOpen" @confirm="onConfirm"></Dialog>
+    <Dialog 
+      title="搜索" 
+      v-model:open="isOpen" 
+      @confirm="onConfirm"
+      :showHeader="false"
+    >
+      <SearchPanel />
+    </Dialog>
   </div>
 </template>
 
@@ -60,6 +67,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import Dialog from './Dialog.vue';
+import SearchPanel from './SearchPanel/index.vue';
 import baiduIcon from '@/assets/icons/baidu.png'
 import googleIcon from '@/assets/icons/google.png'
 
@@ -107,9 +115,8 @@ const handleSearch = () => {
 }
 
 /* 测试对话框 */
-const isOpen = ref(false)
+const isOpen = ref(true)
 const openDialog = () => {
-  console.log(111);
   isOpen.value = true
 }
 const closeDialog = () => {

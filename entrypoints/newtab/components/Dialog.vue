@@ -4,11 +4,11 @@
       <Button>{{ props.triggerText }}</Button>
     </DialogTrigger>
     <DialogContent>
-      <DialogHeader>
+      <DialogHeader v-if="showHeader">
         <DialogTitle>{{ props.title }}</DialogTitle>
       </DialogHeader>
-
-      <DialogFooter>
+      <slot>内容</slot>
+      <DialogFooter v-if="showFooter">
         <slot name="footer">
           <Button @click="onConfirm">确定</Button>
         </slot>
@@ -37,11 +37,15 @@ interface Props {
   title?: string
   triggerText?: string
   showTrigger?: boolean
+  showHeader?: boolean
+  showFooter?: boolean
 }
 const props = withDefaults(defineProps<Props>(), {
   title: '标题',
   triggerText: '打开',
-  showTrigger: false
+  showTrigger: false,
+  showHeader: true,
+  showFooter: true
 }) 
 
 /* Model */
