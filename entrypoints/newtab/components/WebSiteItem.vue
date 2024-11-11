@@ -1,6 +1,6 @@
 <template>
   <a :href="props.website.href" target="_blank"
-    class="flex flex-col items-center p-4 rounded-lg  transition-all duration-200 hover:transform hover:translate-y-[-2px] text-center w-[160px]"
+    class="flex flex-col items-center p-4 rounded-lg  transition-all duration-200 hover:transform hover:translate-y-[-2px] text-center w-[130px]"
     :class="{ 'website-selected': keySelected }">
     <div class="w-12 h-12 mb-3 flex items-center justify-center">
       <img v-if="props.website.icon" :src="props.website.icon" :alt="props.website.title" class="w-full h-full object-contain">
