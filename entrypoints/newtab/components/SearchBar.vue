@@ -44,6 +44,7 @@
       </button>
     </div>
 
+
     <Dialog 
       title="搜索" 
       v-model:open="isOpen" 
@@ -126,7 +127,7 @@ const onConfirm = () => {
   console.log(222);
 }
 
-/* Vue3中组件的数据和方法均为私有，父组件只能访问在子组件中使用defineExpose暴露 */
+/* knowledge: Vue3中组件的数据和方法均为私有，父组件只能访问在子组件中使用defineExpose暴露 */
 defineExpose({
   // 主动聚焦。这里Input为无头组件，所以需要通过$el访问原生DOM元素
   focus: () => iptRef.value?.$el.focus() 

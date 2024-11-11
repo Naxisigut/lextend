@@ -1,10 +1,10 @@
-export type Website = {
+export type WebsiteItem = {
   icon?: string
   title: string
   desc: string
   href: string
 }
-const General: Website[] = [
+const General: WebsiteItem[] = [
   {
     title: 'Github',
     desc: 'Github',
@@ -32,7 +32,7 @@ const General: Website[] = [
   },
 ]
 
-const FrontEnd: Website[] = [
+const FrontEnd: WebsiteItem[] = [
   {
     title: 'UnoCSS',
     desc: 'UnoCSS官方文档',
@@ -85,7 +85,7 @@ const FrontEnd: Website[] = [
   },
 ]
 
-const Resource: Website[] = [
+const Resource: WebsiteItem[] = [
   {
     title: '不太灵影视',
     desc: '视频下载',
