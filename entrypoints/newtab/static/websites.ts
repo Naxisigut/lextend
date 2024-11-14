@@ -83,11 +83,11 @@ const FrontEnd: WebsiteItem[] = [
     desc: 'sonner toast组件',
     href: 'https://vue-sonner.vercel.app/'
   },
-  // {
-  //   title: 'vue-sonner2',
-  //   desc: 'sonner toast组件',
-  //   href: 'https://vue-sonner.vercel.app/'
-  // },
+  {
+    title: 'VueUse',
+    desc: 'Vue3 hook',
+    href: 'https://vueuse.org/guide/'
+  },
   // {
   //   title: 'vue-sonner3',
   //   desc: 'sonner toast组件',

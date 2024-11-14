@@ -5,7 +5,7 @@
       <template v-for="group, gIdx in searchRes" :key="group.title">
         <div class="mt-4" v-if="group.data.length > 0">
           <div class="text-lg font-semibold">{{ group.title }}</div>
-          <div ref="gridRef" class="grid grid-cols-[repeat(auto-fill,minmax(130px,auto))] justify-items-center">
+          <div ref="gridRef" class="my-2 grid grid-cols-[repeat(auto-fill,minmax(130px,auto))] justify-items-center">
             <WebSiteItem 
               v-for="(website, iIdx) in group.data" 
               :key="website.title" 
@@ -40,14 +40,16 @@ const searchRes = ref<[SearchGroupRes]>([
   }
 ])
 const search = () => {
-  resetKeySelect()
+  setKeySelect(null)
   const e = keyword.value.trim()
   if (!e) return
 
   const websiteGroup = searchRes.value[0]
+  websiteGroup.data = [] // Clear previous results
+  const searchRegex = new RegExp(e, 'i') // 'i' flag for case-insensitive search
   websites.Data.forEach(group => {
     group.data.forEach(website => {
-      if (website.title.includes(e) || website.desc.includes(e)) {
+      if (searchRegex.test(website.title) || searchRegex.test(website.desc)) {
         websiteGroup.data.push(website)
       }
     })
@@ -62,48 +64,56 @@ const searchResLength = computed(() => {
 
 /* 键盘选择 */
 const currentIndex = ref<number | null>(null)
-const gridRef = ref<HTMLDivElement[] | null>(null)
 const searchPanelRef = ref<HTMLDivElement | null>(null)
 const GridColNum = ref(0) // 每行显示的列数，根据实际grid布局调整
-const resizeObserver: ResizeObserver = new ResizeObserver(() => {
-  if(gridRef.value?.length) {
-    GridColNum.value = tool.getGridColNum(gridRef.value[0])
-  }
-})
 const handleKeyDown = (e: KeyboardEvent) => {
+  // 没有搜索结果时，不响应键盘事件
+  if(searchResLength.value === 0) return
+
+  // 如果当前没有选中项，则只有在按下箭头键时选中第一项;
+  if(currentIndex.value === null) {
+    if(e.key === 'ArrowDown'){
+      setKeySelect(0)
+      return
+    }
+    return
+  }
+
+  // 只响应这几个按键
   const keyArr = ['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp', 'Enter']
   if (!keyArr.includes(e.key)) return
-  if(searchResLength.value === 0) return
-  e.preventDefault()
-  console.log(e.key);
 
-  const idx = currentIndex.value === null ? -1 : currentIndex.value
+  e.preventDefault()
+
+  const idx = currentIndex.value
   const maxIdx = searchResLength.value - 1
   switch (e.key) {
     case 'ArrowRight':
-      currentIndex.value = Math.min(idx + 1, maxIdx)
+      // 下一项
+      setKeySelect(Math.min(idx + 1, maxIdx))
       break
     case 'ArrowLeft':
-      currentIndex.value = Math.max(idx - 1, 0)
+      // 上一项
+      setKeySelect(idx === 0 ? null : idx - 1)
       break
     case 'ArrowDown':
+      // 下一行
       if(idx + GridColNum.value > maxIdx) return
-      currentIndex.value = idx + GridColNum.value
+      setKeySelect(idx + GridColNum.value)
       break
     case 'ArrowUp':
-      if(idx - GridColNum.value < 0) return
-      currentIndex.value = idx - GridColNum.value
+      // 上一行
+      setKeySelect(idx - GridColNum.value < 0 ? null : idx - GridColNum.value)
       break
     case 'Enter':
       if(idx){
         const item = getCurrSearchItem()
-        console.log(111, item);
         window.open(item.href, '_blank')
       }
       break
   }
 }
-const resetKeySelect = () => currentIndex.value = null
+const setKeySelect = (idx: number | null) => currentIndex.value = idx
 const getCurrSearchItem = () => { // 获取当前选中项
   let idx = currentIndex.value === null ? -1 : currentIndex.value
   let gIdx = 0
@@ -131,14 +141,21 @@ const isSelected = (gIdx: number, iIdx: number) => { // 判断是否选中
   return idx === iIdx
 }
 
-onMounted(() => {
-  if(searchPanelRef.value) {
-    resizeObserver.observe(searchPanelRef.value)
-    console.log('Observe Start');
+/* 监听组件宽度变化，获取Grid盒子的列数 */
+const gridRef = ref<HTMLDivElement[] | null>(null)
+const resizeObserver: ResizeObserver = new ResizeObserver(() => {
+  if(gridRef.value?.length) {
+    GridColNum.value = tool.getGridColNum(gridRef.value[0])
   }
+})
+onMounted(() => {
+  if(!searchPanelRef.value)return
+  resizeObserver.observe(searchPanelRef.value)
+  console.log('Observe Start');
 })
 onUnmounted(() => {
   resizeObserver.disconnect()
+  console.log('Observe Over');
 })
 
 

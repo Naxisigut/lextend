@@ -46,6 +46,15 @@
         </div>
       </div>
     </div>
+    
+    <Dialog 
+      title="搜索" 
+      v-model:open="isOpen"
+      :showHeader="false"
+      :showFooter="false"
+    >
+      <SearchPanel />
+    </Dialog>
   </div>
 </template>
 
@@ -56,13 +65,14 @@ import Main from './components/Main.vue';
 import FunctionRow from './components/FunctionRow.vue';
 import { Globe, Home, House } from 'lucide-vue-next';
 import websites from './static/websites';
+import Dialog from './components/Dialog.vue';
+import SearchPanel from './components/SearchPanel/index.vue';
+import { useEventListener } from '@vueuse/core';
 
 const cpnt = ref<string | null>(null)
 const onFunction = (name: string | null) => {
   cpnt.value = name
 }
-
-
 
 
 const searchBarLeftRef = ref<InstanceType<typeof SearchBar> | null>(null)
@@ -77,10 +87,19 @@ const focusVisibleBar = () => {
     rightEl.checkVisibility() && searchBarRightRef.value.focus()
   }
 }
-
-
 onMounted(() => {
   focusVisibleBar()
+})
+
+
+
+/* 搜索对话框 */
+const isOpen = ref(false)
+useEventListener(document, 'keydown', (e) => {
+  if (e.key === 'k' && e.ctrlKey) {
+    e.preventDefault()
+    isOpen.value = true
+  }
 })
 
 </script>

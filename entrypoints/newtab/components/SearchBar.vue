@@ -36,7 +36,7 @@
       <!-- 输入框 -->
       <Input style="box-shadow: none;" v-model="searchText" placeholder="输入关键词搜索..."
         class="flex-1 border-0 focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-        @keyup.enter="handleSearch" ref="iptRef" @keyup.ctrl.enter="openDialog"/>
+        @keyup.enter="handleSearch" ref="iptRef" />
 
       <!-- 搜索按钮 -->
       <button class="w-12 h-10 flex items-center justify-center hover:opacity-70 bg-transparent" @click="handleSearch">
@@ -45,14 +45,6 @@
     </div>
 
 
-    <Dialog 
-      title="搜索" 
-      v-model:open="isOpen" 
-      @confirm="onConfirm"
-      :showHeader="false"
-    >
-      <SearchPanel />
-    </Dialog>
   </div>
 </template>
 
@@ -67,8 +59,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import Dialog from './Dialog.vue';
-import SearchPanel from './SearchPanel/index.vue';
 import baiduIcon from '@/assets/icons/baidu.png'
 import googleIcon from '@/assets/icons/google.png'
 
@@ -115,17 +105,6 @@ const handleSearch = () => {
   window.location.href = searchUrls[selectedEngine.value]
 }
 
-/* 测试对话框 */
-const isOpen = ref(true)
-const openDialog = () => {
-  isOpen.value = true
-}
-const closeDialog = () => {
-  isOpen.value = false
-}
-const onConfirm = () => {
-  console.log(222);
-}
 
 /* knowledge: Vue3中组件的数据和方法均为私有，父组件只能访问在子组件中使用defineExpose暴露 */
 defineExpose({
