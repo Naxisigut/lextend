@@ -88,7 +88,7 @@ const engines: SearchEngine[] = [
 ]
 
 const searchText = ref('')
-const selectedEngine = ref<string>(engines[0].id)
+const selectedEngine = ref<string>(localStorage.getItem('lastSearchEngine') || engines[0].id)
 const iptRef = ref<InstanceType<typeof Input> | null>(null)
 
 /* 搜索引擎选择滚动 */
@@ -111,6 +111,8 @@ const handleSearch = () => {
 
   const engine = engines.find(e => e.id === selectedEngine.value)
   if (engine) {
+    // 保存当前选择的搜索引擎
+    localStorage.setItem('lastSearchEngine', selectedEngine.value)
     window.location.href = engine.searchUrl + encodeURIComponent(searchText.value)
   }
 }
