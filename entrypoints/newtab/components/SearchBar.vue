@@ -7,21 +7,15 @@
           <SelectTrigger class="h-10 border-0 focus:ring-0 focus:ring-offset-0 bg-transparent">
             <SelectValue>
               <div class="flex items-center">
-                <img :src="engineIcons[selectedEngine]" :alt="selectedEngine" class="w-4 h-4" />
+                <img :src="engines.find(e => e.id === selectedEngine)?.icon" :alt="selectedEngine" class="w-4 h-4" />
               </div>
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="baidu">
+            <SelectItem v-for="engine in engines" :key="engine.id" :value="engine.id">
               <div class="flex items-center gap-2">
-                <img :src="engineIcons.baidu" alt="baidu" class="w-4 h-4" />
-                <span>Baidu</span>
-              </div>
-            </SelectItem>
-            <SelectItem value="google">
-              <div class="flex items-center gap-2">
-                <img :src="engineIcons.google" alt="google" class="w-4 h-4" />
-                <span>Google</span>
+                <img :src="engine.icon" :alt="engine.id" class="w-4 h-4" />
+                <span>{{ engine.name }}</span>
               </div>
             </SelectItem>
           </SelectContent>
@@ -61,36 +55,53 @@ import {
 } from '@/components/ui/select'
 import baiduIcon from '@/assets/icons/baidu.png'
 import googleIcon from '@/assets/icons/google.png'
+import yandexIcon from '@/assets/icons/yandex.png'
 import CrossCornerWrapper from './CrossCornerWrapper.vue'
 
-// 定义搜索引擎列表
-const engines = ['baidu', 'google'] as const
-type Engine = typeof engines[number]
-
-const engineIcons = {
-  baidu: baiduIcon,
-  google: googleIcon
+interface SearchEngine {
+  id: string
+  name: string
+  icon: string
+  searchUrl: string
 }
 
+// 定义搜索引擎列表
+const engines: SearchEngine[] = [
+  {
+    id: 'yandex',
+    name: 'Yandex',
+    icon: yandexIcon,
+    searchUrl: 'https://yandex.com/search/?text='
+  },
+  {
+    id: 'baidu',
+    name: 'Baidu',
+    icon: baiduIcon,
+    searchUrl: 'https://www.baidu.com/s?wd='
+  },
+  {
+    id: 'google',
+    name: 'Google',
+    icon: googleIcon,
+    searchUrl: 'https://www.google.com/search?q='
+  }
+]
+
 const searchText = ref('')
-const selectedEngine = ref<Engine>('baidu')
+const selectedEngine = ref<string>(engines[0].id)
 const iptRef = ref<InstanceType<typeof Input> | null>(null)
 
 /* 搜索引擎选择滚动 */
 const handleScroll = (e: WheelEvent) => {
   e.preventDefault() // 阻止默认滚动行为
 
-  const currentIndex = engines.indexOf(selectedEngine.value)
+  const currentIndex = engines.findIndex(engine => engine.id === selectedEngine.value)
   if (e.deltaY > 0) {
-    // 向下滚动，但不超过最后一个
-    if (currentIndex < engines.length - 1) {
-      selectedEngine.value = engines[currentIndex + 1]
-    }
+    // 向下滚动，到达最后一个时回到第一个
+    selectedEngine.value = engines[(currentIndex + 1) % engines.length].id
   } else {
-    // 向上滚动，但不超过第一个
-    if (currentIndex > 0) {
-      selectedEngine.value = engines[currentIndex - 1]
-    }
+    // 向上滚动，到达第一个时跳转到最后一个
+    selectedEngine.value = engines[(currentIndex - 1 + engines.length) % engines.length].id
   }
 }
 
@@ -98,12 +109,10 @@ const handleScroll = (e: WheelEvent) => {
 const handleSearch = () => {
   if (!searchText.value.trim()) return
 
-  const searchUrls = {
-    baidu: `https://www.baidu.com/s?wd=${encodeURIComponent(searchText.value)}`,
-    google: `https://www.google.com/search?q=${encodeURIComponent(searchText.value)}`
+  const engine = engines.find(e => e.id === selectedEngine.value)
+  if (engine) {
+    window.location.href = engine.searchUrl + encodeURIComponent(searchText.value)
   }
-
-  window.location.href = searchUrls[selectedEngine.value]
 }
 
 

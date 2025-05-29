@@ -38,7 +38,6 @@ const focusVisibleBar = () => {
 
 const router = useRouter()
 const toWebsite = () => {
-  console.log(111111);
   router.push('/websites')
 }
 </script>
