@@ -1,8 +1,6 @@
 <template>
-  <div class="pt-8 px-4">
-    <!-- 搜索输入框组合 -->
-    <div
-      class="relative flex items-center w-full rounded-md border border-input bg-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+  <CrossCornerWrapper>
+    <div class="relative flex items-center w-full rounded-md bg-transparent ">
       <!-- 搜索引擎选择 -->
       <div @mousewheel="handleScroll">
         <Select v-model="selectedEngine">
@@ -34,18 +32,20 @@
       <div class="h-5 w-px bg-border"></div>
 
       <!-- 输入框 -->
-      <Input style="box-shadow: none;" v-model="searchText" placeholder="输入关键词搜索..."
-        class="flex-1 border-0 focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-        @keyup.enter="handleSearch" ref="iptRef" />
+      <Input 
+        v-model="searchText" placeholder="输入关键词搜索..."
+        ref="iptRef" 
+        style="box-shadow: none;" 
+        @keyup.enter="handleSearch" 
+        class="flex-1 border-0 focus:ring-0 focus:ring-offset-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent placeholder:text-gray-500 placeholder:italic"
+      />
 
       <!-- 搜索按钮 -->
       <button class="w-12 h-10 flex items-center justify-center hover:opacity-70 bg-transparent" @click="handleSearch">
         <SearchIcon class="h-4 w-4 text-muted-foreground" />
       </button>
     </div>
-
-
-  </div>
+  </CrossCornerWrapper>
 </template>
 
 <script lang="ts" setup>
@@ -61,6 +61,7 @@ import {
 } from '@/components/ui/select'
 import baiduIcon from '@/assets/icons/baidu.png'
 import googleIcon from '@/assets/icons/google.png'
+import CrossCornerWrapper from './CrossCornerWrapper.vue'
 
 // 定义搜索引擎列表
 const engines = ['baidu', 'google'] as const

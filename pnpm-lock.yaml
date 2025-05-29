@@ -35,6 +35,9 @@ importers:
       vue:
         specifier: ^3.5.11
         version: 3.5.11(typescript@5.6.3)
+      vue-router:
+        specifier: '4'
+        version: 4.5.1(vue@3.5.11(typescript@5.6.3))
     devDependencies:
       '@wxt-dev/module-vue':
         specifier: ^1.0.1
@@ -47,13 +50,13 @@ importers:
         version: 5.6.3
       unocss:
         specifier: ^0.63.4
-        version: 0.63.4(postcss@8.4.47)(rollup@4.24.0)(vite@5.4.8(@types/node@22.13.11)(sass@1.79.5))
+        version: 0.63.4(postcss@8.5.3)(rollup@4.24.0)(vite@5.4.8(@types/node@22.13.11)(sass@1.79.5))
       unocss-preset-animations:
         specifier: ^1.1.0
-        version: 1.1.0(@unocss/preset-wind@0.63.4)(unocss@0.63.4(postcss@8.4.47)(rollup@4.24.0)(vite@5.4.8(@types/node@22.13.11)(sass@1.79.5)))
+        version: 1.1.0(@unocss/preset-wind@0.63.4)(unocss@0.63.4(postcss@8.5.3)(rollup@4.24.0)(vite@5.4.8(@types/node@22.13.11)(sass@1.79.5)))
       unocss-preset-shadcn:
         specifier: ^0.3.1
-        version: 0.3.1(unocss-preset-animations@1.1.0(@unocss/preset-wind@0.63.4)(unocss@0.63.4(postcss@8.4.47)(rollup@4.24.0)(vite@5.4.8(@types/node@22.13.11)(sass@1.79.5))))(unocss@0.63.4(postcss@8.4.47)(rollup@4.24.0)(vite@5.4.8(@types/node@22.13.11)(sass@1.79.5)))
+        version: 0.3.1(unocss-preset-animations@1.1.0(@unocss/preset-wind@0.63.4)(unocss@0.63.4(postcss@8.5.3)(rollup@4.24.0)(vite@5.4.8(@types/node@22.13.11)(sass@1.79.5))))(unocss@0.63.4(postcss@8.5.3)(rollup@4.24.0)(vite@5.4.8(@types/node@22.13.11)(sass@1.79.5)))
       vue-tsc:
         specifier: ^2.1.6
         version: 2.1.6(typescript@5.6.3)
@@ -865,6 +868,9 @@ packages:
 
   '@vue/compiler-vue2@2.7.16':
     resolution: {integrity: sha512-qYC3Psj9S/mfu9uVi5WvNZIzq+xnXMhOwbTFKKDD7b1lhpnn71jXSFdTQ+WsIEk0ONCd7VV2IMm7ONl6tbQ86A==}
+
+  '@vue/devtools-api@6.6.4':
+    resolution: {integrity: sha512-sGhTPMuXqZ1rVOk32RylztWkfXTRhuS7vgAKv0zjqk8gbsHkJ7xfFf+jbySxt7tWObEJwyKaHMikV/WGDiQm8g==}
 
   '@vue/language-core@2.1.6':
     resolution: {integrity: sha512-MW569cSky9R/ooKMh6xa2g1D0AtRKbL56k83dzus/bx//RDJk24RHWkMzbAlXjMdDNyxAaagKPRquBIxkxlCkg==}
@@ -2749,6 +2755,11 @@ packages:
       '@vue/composition-api':
         optional: true
 
+  vue-router@4.5.1:
+    resolution: {integrity: sha512-ogAF3P97NPm8fJsE4by9dwSYtDwXIY1nFY9T6DyQnGHd1E2Da94w9JIolpe42LJGIl0DwOHBi8TcRPlPGwbTtw==}
+    peerDependencies:
+      vue: ^3.2.0
+
   vue-tsc@2.1.6:
     resolution: {integrity: sha512-f98dyZp5FOukcYmbFpuSCJ4Z0vHSOSmxGttZJCsFeX0M4w/Rsq0s4uKXjcSRsZqsRgQa6z7SfuO+y0HVICE57Q==}
     hasBin: true
@@ -3441,13 +3452,13 @@ snapshots:
       gzip-size: 6.0.0
       sirv: 2.0.4
 
-  '@unocss/postcss@0.63.4(postcss@8.4.47)':
+  '@unocss/postcss@0.63.4(postcss@8.5.3)':
     dependencies:
       '@unocss/config': 0.63.4
       '@unocss/core': 0.63.4
       '@unocss/rule-utils': 0.63.4
       css-tree: 3.0.0
-      postcss: 8.4.47
+      postcss: 8.5.3
       tinyglobby: 0.2.9
     transitivePeerDependencies:
       - supports-color
@@ -3620,6 +3631,8 @@ snapshots:
     dependencies:
       de-indent: 1.0.2
       he: 1.2.0
+
+  '@vue/devtools-api@6.6.4': {}
 
   '@vue/language-core@2.1.6(typescript@5.6.3)':
     dependencies:
@@ -5508,22 +5521,22 @@ snapshots:
 
   universalify@2.0.1: {}
 
-  unocss-preset-animations@1.1.0(@unocss/preset-wind@0.63.4)(unocss@0.63.4(postcss@8.4.47)(rollup@4.24.0)(vite@5.4.8(@types/node@22.13.11)(sass@1.79.5))):
+  unocss-preset-animations@1.1.0(@unocss/preset-wind@0.63.4)(unocss@0.63.4(postcss@8.5.3)(rollup@4.24.0)(vite@5.4.8(@types/node@22.13.11)(sass@1.79.5))):
     dependencies:
       '@unocss/preset-wind': 0.63.4
-      unocss: 0.63.4(postcss@8.4.47)(rollup@4.24.0)(vite@5.4.8(@types/node@22.13.11)(sass@1.79.5))
+      unocss: 0.63.4(postcss@8.5.3)(rollup@4.24.0)(vite@5.4.8(@types/node@22.13.11)(sass@1.79.5))
 
-  unocss-preset-shadcn@0.3.1(unocss-preset-animations@1.1.0(@unocss/preset-wind@0.63.4)(unocss@0.63.4(postcss@8.4.47)(rollup@4.24.0)(vite@5.4.8(@types/node@22.13.11)(sass@1.79.5))))(unocss@0.63.4(postcss@8.4.47)(rollup@4.24.0)(vite@5.4.8(@types/node@22.13.11)(sass@1.79.5))):
+  unocss-preset-shadcn@0.3.1(unocss-preset-animations@1.1.0(@unocss/preset-wind@0.63.4)(unocss@0.63.4(postcss@8.5.3)(rollup@4.24.0)(vite@5.4.8(@types/node@22.13.11)(sass@1.79.5))))(unocss@0.63.4(postcss@8.5.3)(rollup@4.24.0)(vite@5.4.8(@types/node@22.13.11)(sass@1.79.5))):
     dependencies:
-      unocss: 0.63.4(postcss@8.4.47)(rollup@4.24.0)(vite@5.4.8(@types/node@22.13.11)(sass@1.79.5))
-      unocss-preset-animations: 1.1.0(@unocss/preset-wind@0.63.4)(unocss@0.63.4(postcss@8.4.47)(rollup@4.24.0)(vite@5.4.8(@types/node@22.13.11)(sass@1.79.5)))
+      unocss: 0.63.4(postcss@8.5.3)(rollup@4.24.0)(vite@5.4.8(@types/node@22.13.11)(sass@1.79.5))
+      unocss-preset-animations: 1.1.0(@unocss/preset-wind@0.63.4)(unocss@0.63.4(postcss@8.5.3)(rollup@4.24.0)(vite@5.4.8(@types/node@22.13.11)(sass@1.79.5)))
 
-  unocss@0.63.4(postcss@8.4.47)(rollup@4.24.0)(vite@5.4.8(@types/node@22.13.11)(sass@1.79.5)):
+  unocss@0.63.4(postcss@8.5.3)(rollup@4.24.0)(vite@5.4.8(@types/node@22.13.11)(sass@1.79.5)):
     dependencies:
       '@unocss/astro': 0.63.4(rollup@4.24.0)(vite@5.4.8(@types/node@22.13.11)(sass@1.79.5))
       '@unocss/cli': 0.63.4(rollup@4.24.0)
       '@unocss/core': 0.63.4
-      '@unocss/postcss': 0.63.4(postcss@8.4.47)
+      '@unocss/postcss': 0.63.4(postcss@8.5.3)
       '@unocss/preset-attributify': 0.63.4
       '@unocss/preset-icons': 0.63.4
       '@unocss/preset-mini': 0.63.4
@@ -5611,6 +5624,11 @@ snapshots:
 
   vue-demi@0.14.10(vue@3.5.11(typescript@5.6.3)):
     dependencies:
+      vue: 3.5.11(typescript@5.6.3)
+
+  vue-router@4.5.1(vue@3.5.11(typescript@5.6.3)):
+    dependencies:
+      '@vue/devtools-api': 6.6.4
       vue: 3.5.11(typescript@5.6.3)
 
   vue-tsc@2.1.6(typescript@5.6.3):
