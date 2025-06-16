@@ -1,5 +1,5 @@
 <template>
-  <CrossCornerWrapper>
+  <LiquidGlassWrapper class="rounded-3xl hover:scale-102">
     <div class="relative flex items-center w-full rounded-md bg-transparent ">
       <!-- 搜索引擎选择 -->
       <div @mousewheel="handleScroll">
@@ -39,7 +39,7 @@
         <SearchIcon class="h-4 w-4 text-muted-foreground" />
       </button>
     </div>
-  </CrossCornerWrapper>
+  </LiquidGlassWrapper>
 </template>
 
 <script lang="ts" setup>
@@ -57,6 +57,7 @@ import baiduIcon from '@/assets/icons/baidu.png'
 import googleIcon from '@/assets/icons/google.png'
 import yandexIcon from '@/assets/icons/yandex.png'
 import CrossCornerWrapper from './CrossCornerWrapper.vue'
+import LiquidGlassWrapper from '../plugins/LiquidGlassWrapper.vue'
 
 interface SearchEngine {
   id: string

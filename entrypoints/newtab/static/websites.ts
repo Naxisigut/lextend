@@ -211,3 +211,16 @@ export default {
 }
 
 
+// fetch('http://localhost:10086/Lextend/AllWebsites', {
+//   method: 'POST',
+//   body: JSON.stringify({
+//     isPaging: false,
+//   })
+// }).then((res) => {
+//   console.log(111, res);
+//   res.json().then((data) => {
+//     console.log(data)
+//   })
+// })
+
+

@@ -4,5 +4,7 @@ import './style/index.scss'
 import { createApp } from 'vue';
 import App from './App.vue';
 import { router } from './routers/index';
+import liquidGlass from './plugins/liquidGlass';
 
-createApp(App).use(router).mount('#app');
+
+createApp(App).use(router).use(liquidGlass).mount('#app');
