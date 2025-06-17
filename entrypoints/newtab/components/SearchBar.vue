@@ -56,8 +56,6 @@ import {
 import baiduIcon from '@/assets/icons/baidu.png'
 import googleIcon from '@/assets/icons/google.png'
 import yandexIcon from '@/assets/icons/yandex.png'
-import CrossCornerWrapper from './CrossCornerWrapper.vue'
-import LiquidGlassWrapper from '../plugins/LiquidGlassWrapper.vue'
 
 interface SearchEngine {
   id: string
