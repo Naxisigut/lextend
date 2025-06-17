@@ -29,6 +29,7 @@ useEventListener(document, 'keydown', (e) => {
 body {
   background: url("/assets/flowers.jpg") center center;
   background-size: 500px;
+  animation: moveBackground 180s linear infinite;
 }
 @keyframes moveBackground {
   from {

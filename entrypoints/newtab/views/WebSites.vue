@@ -3,19 +3,19 @@
     <div class="space-y-8">
       <div v-for="group in websites.Data" :key="group.title" class="space-y-4">
         <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-300">{{ group.title }}</h2>
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-          <a v-for="website in group.data" :key="website.title" :href="website.href" target="_blank"
-            class="flex flex-col items-center p-4 rounded-lg  transition-all duration-200 hover:transform hover:translate-y-[-2px] text-center">
-            <div class="w-12 h-12 mb-3 flex items-center justify-center">
-              <img v-if="website.icon" :src="website.icon" :alt="website.title" class="w-full h-full object-contain">
-              <div v-else class="w-full h-full rounded-full flex items-center justify-center relative">
-                <div class="website-icon-bg"></div>
-                <Globe class="z-10 text-gray-700" />
-              </div>
-            </div>
-            <span class="text-sm text-gray-700 dark:text-gray-300">{{ website.title }}</span>
-            <span class="text-xs text-gray-500 mt-1">{{ website.desc }}</span>
-          </a>
+        <div class="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] auto-rows-[120px] gap-2">
+          <LiquidGlassWrapper v-for="website in group.data" :key="website.title" class="rounded-full hover:scale-120 hover:z-10">
+            <a :href="website.href" target="_blank"
+              class="h-full flex flex-col items-center justify-center text-center text-white">
+                <div class="w-12 h-12 flex items-center justify-center relative">
+                  <div class="website-icon-bg"></div>
+                  <img v-if="website.icon" :src="website.icon" :alt="website.title">
+                  <Globe v-else class="z-10" />
+                </div>
+                <div class="px-1 w-full truncate text-sm ">{{ website.title }}</div>
+                <div class="px-1 w-full truncate text-xs text-white/80">{{ website.desc }}</div>
+            </a>  
+          </LiquidGlassWrapper>
         </div>
       </div>
     </div>
