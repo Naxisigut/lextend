@@ -3,16 +3,27 @@
     <!-- <div class="placeholder absolute inset-0 m-auto"></div> -->
     <div class="w-full max-w-2xl relative">
       <transition name="fade">
-        <div v-if="searchBarVisible" class="absolute -top-[3rem] left-0 w-full">
+        <div 
+          v-if="searchBarVisibleState.visible" 
+          class="absolute -top-[3rem] left-0 w-full" 
+          @mouseenter="searchBarVisibleHandler('show')"
+        >
           <SearchBar ref="searchBarRef" />
         </div>
       </transition>
       <LiquidGlassWrapper class="rounded-3xl p-2">
         <div class="dock mt-1 flex items-center justify-center gap-4">
-          <img class="w-20 hover:scale-105 transition-all duration-300" src="/assets/dock-icons/safari.png" alt="常用网站" @click="toWebsite">
-          <img class="w-20 hover:scale-105 transition-all duration-300" src="/assets/dock-icons/search.png" alt="logo" @mouseenter="showSearchBar" @mouseleave="hideSearchBar">
+          <img class="w-20 hover:scale-105 transition-all duration-300" src="/assets/dock-icons/safari.png" alt="常用网站" 
+            @click="toWebsite" 
+            @mouseenter="searchBarVisibleHandler('hide')"
+          >
+          <img class="w-20 hover:scale-105 transition-all duration-300" src="/assets/dock-icons/search.png" alt="搜索" 
+            @mouseenter="searchBarVisibleHandler('show')" 
+            @mouseleave="searchBarVisibleHandler('delay hide')"
+          >
         </div>
-        </LiquidGlassWrapper>
+      </LiquidGlassWrapper>
+
     </div>
   </div>
 </template>
@@ -24,7 +35,6 @@ defineOptions({
   name: 'HomeView'
 })
 
-const searchBarVisible = ref(false)
 const searchBarRef = ref<InstanceType<typeof SearchBar> | null>(null)
 const focusVisibleBar = () => {
   if (!searchBarRef.value) return
@@ -32,18 +42,39 @@ const focusVisibleBar = () => {
   /* checkVisibility: 检查元素是否可见, 无论其可见性是否被其祖先元素的样式影响 */
   el && searchBarRef.value.focus()
 }
-const showSearchBar = () => {
-  searchBarVisible.value = true
-  nextTick(() => focusVisibleBar())
+const searchBarVisibleState = reactive<{
+  visible: boolean,
+  delayTimer: NodeJS.Timeout | null,
+}>({
+  visible: false,
+  delayTimer: null,
+})
+const searchBarVisibleHandler = (mode: 'show' | 'focus show' | 'hide' | 'delay hide') => {
+  switch (mode) {
+    case 'show':
+      searchBarVisibleState.visible = true
+      searchBarVisibleState.delayTimer && clearTimeout(searchBarVisibleState.delayTimer)
+      searchBarVisibleState.delayTimer = null
+      break
+    case 'focus show':
+      searchBarVisibleState.visible = true
+      searchBarVisibleState.delayTimer && clearTimeout(searchBarVisibleState.delayTimer)
+      searchBarVisibleState.delayTimer = null
+      nextTick(() => focusVisibleBar())
+      break
+    case 'hide':
+      searchBarVisibleState.visible = false
+      searchBarVisibleState.delayTimer && clearTimeout(searchBarVisibleState.delayTimer)
+      searchBarVisibleState.delayTimer = null
+      break
+    case 'delay hide':
+      searchBarVisibleState.delayTimer = setTimeout(() => {
+        searchBarVisibleHandler('hide')
+      }, 200)
+  }
 }
-const hideSearchBar = () => {
-  searchBarVisible.value = false
-}
-
 const router = useRouter()
-const toWebsite = () => {
-  router.push('/websites')
-}
+const toWebsite = () => router.push('/websites')
 </script>
 
 <style lang='scss' scoped>
