@@ -61,6 +61,7 @@ import Dialog from '../components/Dialog.vue';
 import { ref } from 'vue';
 import { Input } from "@/components/ui/input"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import request from '@/lib/http';
 type DialogOpenType = 'addNewGroup' | 'addNewWebsite' | ''
 
 const isOpen = ref(false)
@@ -83,13 +84,8 @@ const onConfirm = () => {
 const newGroupName = ref('')
 const onConfirmAddNewGroup = () => {
   if (!newGroupName.value) return
-  fetch('http://localhost:10086/Lextend/AddWebsiteType', {
-    method: 'POST',
-    body: JSON.stringify({
-      name: newGroupName.value
-    })
-  }).then((res) => {
-    return res.json()
+  request.post('/AddWebsiteType', {
+    name: newGroupName.value
   }).then((res) => {
     if(res.success){
       isOpen.value = false
@@ -112,12 +108,7 @@ const onConfirmAddNewWebsite = () => {
   // fake validate
   if (!newWebsite.value.title) return
   
-  fetch('http://localhost:10086/Lextend/AddWebsite', {
-    method: 'POST',
-    body: JSON.stringify(newWebsite.value)
-  }).then((res) => {
-    return res.json()
-  }).then((res) => {
+  request.post('/AddWebsite', newWebsite.value).then((res) => {
     if(res.success){
       initWebsiteData()
     }else{
@@ -132,52 +123,34 @@ const onConfirmAddNewWebsite = () => {
 /* 获取所有数据 */
 const websiteTypes = ref<{id: string, text: string}[]>([])
 const allData = ref<any>({})
-const getAllTypes =  () => {
-  return fetch('http://localhost:10086/Lextend/GetWebsiteTypes', {
-    method: 'POST',
-    body: JSON.stringify({})
-  }).then((res) => {
-    return res.json()
-  }).then((res) => {
-    if(res.success){
-      websiteTypes.value = res.data.map((i: {
-        id: number, 
-        name: string
-      }) => ({
-        ...i, 
-        id: i.id.toString()
-      }))
-    }else{
-      // 获取失败 msg
-    }
-  })
+const getAllTypes = async () => {
+  const res = await request.post('/GetWebsiteTypes', {})
+  if(res.success){
+    res.data.forEach((i: any) => i.id = i.id.toString())
+    websiteTypes.value = res.data
+  }else{
+    // 获取失败 msg
+  }
 }
-const getWebsitesByType = (type: {id: string, text: string}) => {
-  return fetch('http://localhost:10086/Lextend/GetWebsites', {
-    method: 'POST',
-    body: JSON.stringify({
-      isPaging: false,
-      typeId: type.id
-    })
-  }).then((res) => {
-    return res.json()
-  }).then((res) => {
-    const data = res.success ? res.data.list : []
-    return {
-      groupId: type.id,
-      groupName: type.text,
-      data
-    }
+const getWebsitesByType = async (type: {id: string, text: string}) => {
+  const res = await request.post('/GetWebsites', {
+    isPaging: false,
+    typeId: type.id
   })
+  const data = res.success ? res.data.list : []
+  return {
+    groupId: type.id,
+    groupName: type.text,
+    data
+  }
 }
-const initWebsiteData = () => {
-  getAllTypes().then(() => {
-    Promise.all(websiteTypes.value.map((item) => {
-      return getWebsitesByType(item)
-    })).then((res) => {
-      allData.value = res
-    })
-  })
+const initWebsiteData = async () => {
+  await getAllTypes()
+  if(websiteTypes.value.length === 0) return
+  const res = await Promise.all(websiteTypes.value.map((item) => {
+    return getWebsitesByType(item)
+  }))
+  allData.value = res
 }
 initWebsiteData()
 
