@@ -104,17 +104,32 @@ const newWebsite = ref({
   icon: '',
   typeId: ''
 })
-const onConfirmAddNewWebsite = () => {
+const onConfirmAddNewWebsite = async () => {
   // fake validate
   if (!newWebsite.value.title) return
   
-  request.post('/AddWebsite', newWebsite.value).then((res) => {
-    if(res.success){
-      initWebsiteData()
-    }else{
-      // 获取失败 msg
-    }
+  const res = await request.post('/AddWebsite', newWebsite.value)
+  if(!res.success) {
+    // 获取失败 msg
+    return
+  }
+  const typeId = newWebsite.value.typeId
+  const groupIndex = allData.value.findIndex((i: any) => i.groupId === typeId)
+  if(groupIndex === -1) return
+  const group = allData.value[groupIndex]
+  const newGroupData = await getWebsitesByType({
+    id: group.groupId.toString(),
+    text: group.groupName
   })
+  allData.value[groupIndex] = newGroupData
+  newWebsite.value = {
+    title: '',
+    desc: '',
+    href: '',
+    icon: '',
+    typeId: ''
+  }
+  isOpen.value = false
 }
 
 
