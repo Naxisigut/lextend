@@ -9,7 +9,7 @@
       <div v-for="group in allData" :key="group.groupId" class="space-y-4">
         <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-300">{{ group.groupName }}</h2>
         <div class="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] auto-rows-[120px] ">
-          <LiquidGlassWrapper v-for="website in group.data" :key="website.id" class=" hover:scale-120 hover:z-10">
+          <LiquidGlassWrapper v-for="website in group.data" :key="website.id" class=" hover:scale-120 hover:z-10" @contextmenu.prevent="onContextMenu($event, website, group)">
             <a :href="website.href" target="_blank"
               class="h-full flex flex-col items-center justify-center text-center text-white">
                 <div class="w-12 h-12 flex items-center justify-center relative">
@@ -62,13 +62,28 @@ import { ref } from 'vue';
 import { Input } from "@/components/ui/input"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import request from '@/lib/http';
+import ContextMenu from '@imengyu/vue3-context-menu'
 type DialogOpenType = 'addNewGroup' | 'addNewWebsite' | ''
+interface Website {
+  id: string
+  title: string
+  desc: string
+  href: string
+  icon: string
+  typeId: string
+}
+interface WebsiteGroup {
+  groupId: string
+  groupName: string
+  data: Website[]
+}
 
 const isOpen = ref(false)
 const openType = ref<DialogOpenType>('')
 const onOpen = (type: DialogOpenType, groupId?: string) => {
   openType.value = type
   if(groupId){
+    currGroupId.value = groupId
     newWebsite.value.typeId = groupId
   }
   isOpen.value = true
@@ -96,6 +111,9 @@ const onConfirmAddNewGroup = () => {
   })
 }
 
+
+
+const currGroupId = ref('')
 /* 新建网站 */
 const newWebsite = ref({
   title: '',
@@ -113,15 +131,7 @@ const onConfirmAddNewWebsite = async () => {
     // 获取失败 msg
     return
   }
-  const typeId = newWebsite.value.typeId
-  const groupIndex = allData.value.findIndex((i: any) => i.groupId === typeId)
-  if(groupIndex === -1) return
-  const group = allData.value[groupIndex]
-  const newGroupData = await getWebsitesByType({
-    id: group.groupId.toString(),
-    text: group.groupName
-  })
-  allData.value[groupIndex] = newGroupData
+  refreshGroupDataByTypeId(currGroupId.value)
   newWebsite.value = {
     title: '',
     desc: '',
@@ -132,12 +142,52 @@ const onConfirmAddNewWebsite = async () => {
   isOpen.value = false
 }
 
+/* 删除网站 */
+const onDeleteWebsite = async (website: Website) => {
+  const deleteRes = await request.post('/DeleteWebsite', {
+    id: website.id
+  })
+  if(!deleteRes.success) {
+    // 删除失败msg
+    return
+  }
+  refreshGroupDataByTypeId(currGroupId.value)
+}
+/* 编辑网站 */
+const onEditWebsite = (website: Website) => {
+  console.log(website);
+}
+
+
+const onContextMenu = (e: MouseEvent, website: Website, group: WebsiteGroup) => {
+  currGroupId.value = group.groupId
+  ContextMenu.showContextMenu({
+    theme: "mac",
+    // menuTransitionProps: {
+    //   name: 'fade'
+    // },
+    x: e.clientX,
+    y: e.clientY,
+    items: [
+      {
+        label: '编辑',
+        onClick: () => onEditWebsite(website)
+      },
+      {
+        label: '删除',
+        onClick: () => onDeleteWebsite(website)
+      },
+    ]
+  })
+}
+
 
 
 
 /* 获取所有数据 */
+/* getAllTypes => 根据类型获取 */
 const websiteTypes = ref<{id: string, text: string}[]>([])
-const allData = ref<any>({})
+const allData = ref<WebsiteGroup[]>([])
 const getAllTypes = async () => {
   const res = await request.post('/GetWebsiteTypes', {})
   if(res.success){
@@ -147,25 +197,32 @@ const getAllTypes = async () => {
     // 获取失败 msg
   }
 }
-const getWebsitesByType = async (type: {id: string, text: string}) => {
+const getWebsitesByTypeId = async (typeId: string) => {
   const res = await request.post('/GetWebsites', {
     isPaging: false,
-    typeId: type.id
+    typeId: typeId
   })
   const data = res.success ? res.data.list : []
-  return {
-    groupId: type.id,
-    groupName: type.text,
-    data
-  }
+  return data
+}
+const refreshGroupDataByTypeId = async (typeId: string) => {
+  const group = allData.value.find((i) => i.groupId === typeId)
+  if(!group) return
+  const newGroupData = await getWebsitesByTypeId(typeId)
+  group.data = newGroupData
 }
 const initWebsiteData = async () => {
   await getAllTypes()
-  if(websiteTypes.value.length === 0) return
-  const res = await Promise.all(websiteTypes.value.map((item) => {
-    return getWebsitesByType(item)
-  }))
-  allData.value = res
+  allData.value = websiteTypes.value.map((item) => {
+    return {
+      groupId: item.id,
+      groupName: item.text,
+      data: []
+    }
+  })
+  allData.value.forEach(async (item) => {
+    refreshGroupDataByTypeId(item.groupId)
+  })
 }
 initWebsiteData()
 
