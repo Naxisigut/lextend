@@ -15,7 +15,7 @@
     "postinstall": "wxt prepare"
   },
   "dependencies": {
-    "@imengyu/vue3-context-menu": "^1.5.0",
+    "@imengyu/vue3-context-menu": "^1.5.1",
     "@unocss/reset": "^0.63.6",
     "@vueuse/core": "^11.2.0",
     "class-variance-authority": "^0.7.0",
