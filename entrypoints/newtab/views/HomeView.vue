@@ -17,10 +17,10 @@
             @click="toWebsite" 
             @mouseenter="searchBarVisibleHandler('hide')"
           >
-          <!-- <img class="w-20 hover:scale-105 transition-all duration-300" src="/assets/dock-icons/safari.png" alt="常用网站" 
+          <img class="w-20 hover:scale-105 transition-all duration-300" src="/assets/dock-icons/safari.png" alt="常用网站" 
             @click="toTestDialog" 
             @mouseenter="searchBarVisibleHandler('hide')"
-          > -->
+          >
           <img class="w-20 hover:scale-105 transition-all duration-300" src="/assets/dock-icons/search.png" alt="搜索" 
             @mouseenter="searchBarVisibleHandler('show')" 
             @mouseleave="searchBarVisibleHandler('delay hide')"

@@ -54,9 +54,9 @@
 import { Globe, Plus } from 'lucide-vue-next';
 import Dialog from '../components/Dialog.vue';
 import { ref } from 'vue';
-import { Input } from "@/components/ui/input"
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import request from '@/lib/http';
+import { Input } from "@/components/ui/input/index"
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select/index';
+import request from '@/lib/http.js';
 import ContextMenu from '@imengyu/vue3-context-menu'
 
 // #region 类型定义
