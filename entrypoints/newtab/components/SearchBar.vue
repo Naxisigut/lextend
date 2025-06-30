@@ -62,6 +62,7 @@ interface SearchEngine {
   name: string
   icon: string
   searchUrl: string
+  type: 'search' | 'redirect' // search: 直接搜索, redirect: 跳转类
 }
 
 // 定义搜索引擎列表
@@ -70,19 +71,29 @@ const engines: SearchEngine[] = [
     id: 'yandex',
     name: 'Yandex',
     icon: yandexIcon,
-    searchUrl: 'https://yandex.com/search/?text='
+    searchUrl: 'https://yandex.com/search/?text=',
+    type: 'search'
   },
   {
     id: 'baidu',
     name: 'Baidu',
     icon: baiduIcon,
-    searchUrl: 'https://www.baidu.com/s?wd='
+    searchUrl: 'https://www.baidu.com/s?wd=',
+    type: 'search'
   },
   {
     id: 'google',
     name: 'Google',
     icon: googleIcon,
-    searchUrl: 'https://www.google.com/search?q='
+    searchUrl: 'https://www.google.com/search?q=',
+    type: 'search'
+  },
+  {
+    id: 'mdn',
+    name: 'MDN',
+    icon: 'https://developer.mozilla.org/favicon-48x48.png',
+    searchUrl: 'https://developer.mozilla.org/zh-CN',
+    type: 'redirect'
   }
 ]
 
@@ -105,14 +116,28 @@ const handleScroll = (e: WheelEvent) => {
 }
 
 /* 搜索 */
-const handleSearch = () => {
+const handleSearch = async () => {
   if (!searchText.value.trim()) return
 
   const engine = engines.find(e => e.id === selectedEngine.value)
   if (engine) {
     // 保存当前选择的搜索引擎
     localStorage.setItem('lastSearchEngine', selectedEngine.value)
-    window.location.href = engine.searchUrl + encodeURIComponent(searchText.value)
+    
+    if (engine.type === 'search') {
+      // 直接搜索类型：拼接搜索词到URL
+      window.location.href = engine.searchUrl + encodeURIComponent(searchText.value)
+    } else if (engine.type === 'redirect') {
+      // 跳转类型：复制到剪贴板并跳转到搜索页
+      try {
+        await navigator.clipboard.writeText(searchText.value)
+        console.log('搜索词已复制到剪贴板:', searchText.value)
+      } catch (err) {
+        console.warn('复制到剪贴板失败:', err)
+        // 如果复制失败，可以考虑使用传统方法或者提示用户
+      }
+      window.location.href = engine.searchUrl
+    }
   }
 }
 
