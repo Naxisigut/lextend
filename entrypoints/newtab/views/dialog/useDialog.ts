@@ -7,11 +7,22 @@ import type {
   CloseReason 
 } from './types'
 import { 
-  generateId, 
-  mergeOptions, 
   preventBodyScroll,
   debounce 
 } from './utils'
+import { 
+  DIALOG_DEFAULTS, 
+  ERROR_MESSAGES,
+  FOCUS_SELECTORS 
+} from './constants'
+import {
+  createDialogInstance,
+  validateDialogOptions,
+  checkMaxDialogCount,
+  getTopDialog,
+  findDialogInStack,
+  safeExecuteCallback
+} from './helpers'
 import DialogContainer from './DialogContainer.vue'
 import './style.css'
 
@@ -26,8 +37,8 @@ const DEFAULT_OPTIONS: DialogDefaultOptions = {
   escClosable: true,
   animationDuration: 300,
   animationEasing: 'ease-out',
-  maxCount: 10,
-  baseZIndex: 1000
+  maxCount: DIALOG_DEFAULTS.MAX_COUNT,
+  baseZIndex: DIALOG_DEFAULTS.BASE_Z_INDEX
 }
 
 /**
@@ -49,249 +60,249 @@ const dialogRenderers = new Map<string, {
 }>()
 
 /**
- * ESC 键处理函数
+ * 弹窗管理器类 - 封装弹窗管理逻辑
  */
-const handleEscapeKey = (event: KeyboardEvent) => {
-  if (event.key === 'Escape' && globalDialogStack.value.length > 0) {
-    const topDialog = globalDialogStack.value[globalDialogStack.value.length - 1]
-    if (topDialog.options.escClosable !== false) {
-      closeDialog(topDialog.id, 'escape')
+class DialogManager {
+  constructor(
+    private dialogStack: typeof globalDialogStack,
+    private scrollRestoreFuncs: (() => void)[]
+  ) {}
+
+  /**
+   * ESC 键处理函数
+   */
+  private handleEscapeKey = (event: KeyboardEvent) => {
+    if (event.key === 'Escape' && this.dialogStack.value.length > 0) {
+      const topDialog = getTopDialog(this.dialogStack.value)
+      if (topDialog && topDialog.options.escClosable !== false) {
+        this.closeDialog(topDialog.id, 'escape')
+      }
     }
   }
-}
 
-/**
- * 全局事件监听器管理
- */
-let isGlobalListenerAdded = false
+  /**
+   * 全局事件监听器管理
+   */
+  private isGlobalListenerAdded = false
 
-function addGlobalListeners() {
-  if (!isGlobalListenerAdded) {
-    document.addEventListener('keydown', handleEscapeKey)
-    isGlobalListenerAdded = true
-  }
-}
-
-function removeGlobalListeners() {
-  if (isGlobalListenerAdded && globalDialogStack.value.length === 0) {
-    document.removeEventListener('keydown', handleEscapeKey)
-    isGlobalListenerAdded = false
-  }
-}
-
-/**
- * 渲染弹窗到 DOM
- */
-function renderDialog(dialogInstance: DialogInstance) {
-  // 创建容器元素
-  const container = document.createElement('div')
-  container.setAttribute('data-dialog-id', dialogInstance.id)
-  
-  // 创建 Vue 应用实例
-  const app = createApp(DialogContainer, {
-    dialogData: dialogInstance
-  })
-  
-  // 监听关闭事件
-  app.provide('onDialogClose', (event: any) => {
-    if (!event.defaultPrevented) {
-      closeDialog(dialogInstance.id, event.reason)
+  private addGlobalListeners() {
+    if (!this.isGlobalListenerAdded) {
+      document.addEventListener('keydown', this.handleEscapeKey)
+      this.isGlobalListenerAdded = true
     }
-  })
-  
-  // 挂载到容器
-  app.mount(container)
-  
-  // 存储渲染器信息
-  dialogRenderers.set(dialogInstance.id, {
-    app,
-    container
-  })
-}
+  }
 
-/**
- * 销毁弹窗渲染器
- */
-function destroyDialog(dialogId: string) {
-  const renderer = dialogRenderers.get(dialogId)
-  if (renderer) {
-    // 卸载 Vue 应用
-    renderer.app.unmount()
+  private removeGlobalListeners() {
+    if (this.isGlobalListenerAdded && this.dialogStack.value.length === 0) {
+      document.removeEventListener('keydown', this.handleEscapeKey)
+      this.isGlobalListenerAdded = false
+    }
+  }
+
+  /**
+   * 渲染弹窗到 DOM
+   */
+  private renderDialog(dialogInstance: DialogInstance) {
+    const container = document.createElement('div')
+    container.setAttribute('data-dialog-id', dialogInstance.id)
     
-    // 清理 DOM
-    if (renderer.container.parentNode) {
-      renderer.container.parentNode.removeChild(renderer.container)
+    const app = createApp(DialogContainer, {
+      dialogData: dialogInstance
+    })
+    
+    app.provide('onDialogClose', (event: any) => {
+      if (!event.defaultPrevented) {
+        this.closeDialog(dialogInstance.id, event.reason)
+      }
+    })
+    
+    app.mount(container)
+    
+    dialogRenderers.set(dialogInstance.id, { app, container })
+  }
+
+  /**
+   * 安全销毁弹窗渲染器
+   */
+  private destroyDialog(dialogId: string) {
+    const renderer = dialogRenderers.get(dialogId)
+    if (!renderer) return
+
+    try {
+      renderer.app.unmount()
+    } catch (error) {
+      console.warn(`${ERROR_MESSAGES.UNMOUNT_FAILED} (${dialogId}):`, error)
     }
     
-    // 从映射中移除
+    try {
+      if (renderer.container.parentNode) {
+        renderer.container.parentNode.removeChild(renderer.container)
+      }
+    } catch (error) {
+      console.warn(`${ERROR_MESSAGES.DOM_CLEANUP_FAILED} (${dialogId}):`, error)
+    }
+    
     dialogRenderers.delete(dialogId)
   }
-}
 
-/**
- * 关闭指定弹窗
- */
-function closeDialog(id: string, reason: CloseReason = 'manual'): void {
-  const dialogIndex = globalDialogStack.value.findIndex(dialog => dialog.id === id)
-  if (dialogIndex === -1) return
+  /**
+   * 显示弹窗
+   */
+  async showDialog(options: DialogOptions): Promise<string> {
+    // 验证参数
+    validateDialogOptions(options)
+    checkMaxDialogCount(this.dialogStack.value.length, DEFAULT_OPTIONS.maxCount)
 
-  const dialog = globalDialogStack.value[dialogIndex]
-  
-  // 执行关闭前回调
-  if (dialog.options.onBeforeClose) {
-    const shouldClose = dialog.options.onBeforeClose()
-    if (shouldClose === false) return
+    // 创建弹窗实例
+    const dialogInstance = createDialogInstance(options, this.dialogStack.value.length)
+    dialogInstance.close = () => this.closeDialog(dialogInstance.id)
+
+    // 添加到栈中
+    this.dialogStack.value.push(dialogInstance)
+
+    // 管理资源
+    this.addGlobalListeners()
     
-    // 支持异步回调
-    if (shouldClose instanceof Promise) {
-      shouldClose.then(result => {
-        if (result !== false) {
-          performCloseDialog(id, reason)
-        }
-      }).catch(() => {
-        // 如果异步回调出错，默认允许关闭
-        performCloseDialog(id, reason)
-      })
-      return
+    if (this.dialogStack.value.length === 1) {
+      const restoreScroll = preventBodyScroll()
+      this.scrollRestoreFuncs.push(restoreScroll)
+    }
+
+    try {
+      this.renderDialog(dialogInstance)
+      return dialogInstance.id
+    } catch (renderError) {
+      // 渲染失败时清理资源
+      this.cleanupFailedDialog(dialogInstance.id)
+      throw new Error(`${ERROR_MESSAGES.RENDER_FAILED}: ${renderError}`)
     }
   }
 
-  performCloseDialog(id, reason)
-}
-
-/**
- * 执行弹窗关闭逻辑
- */
-function performCloseDialog(id: string, reason: CloseReason): void {
-  const dialogIndex = globalDialogStack.value.findIndex(dialog => dialog.id === id)
-  if (dialogIndex === -1) return
-
-  const dialog = globalDialogStack.value[dialogIndex]
-  
-  // 标记为不可见（为后续动画做准备）
-  dialog.isVisible = false
-
-  // 立即从栈中移除（阶段2暂不考虑动画延迟）
-  globalDialogStack.value.splice(dialogIndex, 1)
-
-  // 恢复滚动（如果这是最后一个弹窗）
-  if (globalDialogStack.value.length === 0 && scrollRestoreFunctions.length > 0) {
-    const restoreScroll = scrollRestoreFunctions.pop()
-    restoreScroll?.()
+  /**
+   * 清理失败的弹窗
+   */
+  private cleanupFailedDialog(id: string) {
+    const result = findDialogInStack(this.dialogStack.value, id)
+    if (result) {
+      this.dialogStack.value.splice(result.index, 1)
+    }
+    
+    if (this.dialogStack.value.length === 0 && this.scrollRestoreFuncs.length > 0) {
+      const restoreScroll = this.scrollRestoreFuncs.pop()
+      restoreScroll?.()
+    }
+    
+    this.removeGlobalListeners()
   }
 
-  // 移除全局监听器（如果没有弹窗了）
-  removeGlobalListeners()
+  /**
+   * 关闭指定弹窗
+   */
+  async closeDialog(id: string, reason: CloseReason = 'manual'): Promise<void> {
+    const result = findDialogInStack(this.dialogStack.value, id)
+    if (!result) return
 
-  // 销毁弹窗渲染器
-  destroyDialog(id)
+    const { dialog } = result
+    
+    // 执行关闭前回调
+    if (dialog.options.onBeforeClose) {
+      const shouldClose = await safeExecuteCallback(dialog.options.onBeforeClose, true)
+      if (shouldClose === false) return
+    }
 
-  // 执行关闭回调
-  nextTick(() => {
-    dialog.options.onClose?.()
-  })
+    await this.performCloseDialog(id, reason)
+  }
+
+  /**
+   * 执行弹窗关闭逻辑
+   */
+  private async performCloseDialog(id: string, reason: CloseReason): Promise<void> {
+    const result = findDialogInStack(this.dialogStack.value, id)
+    if (!result) return
+
+    const { dialog, index } = result
+    
+    // 标记为不可见
+    dialog.isVisible = false
+
+    // 从栈中移除
+    this.dialogStack.value.splice(index, 1)
+
+    // 恢复滚动
+    if (this.dialogStack.value.length === 0 && this.scrollRestoreFuncs.length > 0) {
+      const restoreScroll = this.scrollRestoreFuncs.pop()
+      restoreScroll?.()
+    }
+
+    // 移除全局监听器
+    this.removeGlobalListeners()
+
+    // 销毁弹窗渲染器
+    this.destroyDialog(id)
+
+    // 执行关闭回调
+    await nextTick()
+    await safeExecuteCallback(dialog.options.onClose, undefined)
+  }
+
+  /**
+   * 关闭栈顶弹窗
+   */
+  closeTopDialog(): void {
+    const topDialog = getTopDialog(this.dialogStack.value)
+    if (topDialog) {
+      this.closeDialog(topDialog.id, 'manual')
+    }
+  }
+
+  /**
+   * 关闭所有弹窗
+   */
+  closeAllDialogs(): void {
+    const dialogIds = this.dialogStack.value.map(dialog => dialog.id).reverse()
+    dialogIds.forEach(id => this.closeDialog(id, 'manual'))
+  }
+
+  /**
+   * 获取指定弹窗实例
+   */
+  getDialog(id: string): DialogInstance | undefined {
+    const result = findDialogInStack(this.dialogStack.value, id)
+    return result?.dialog
+  }
+
+  /**
+   * 清理所有资源
+   */
+  cleanup() {
+    for (const [id] of dialogRenderers) {
+      this.destroyDialog(id)
+    }
+    this.removeGlobalListeners()
+  }
 }
 
-/**
- * 关闭栈顶弹窗
- */
-function closeTopDialog(): void {
-  if (globalDialogStack.value.length === 0) return
-  
-  const topDialog = globalDialogStack.value[globalDialogStack.value.length - 1]
-  closeDialog(topDialog.id, 'manual')
+// 创建全局弹窗管理器实例
+const globalDialogManager = new DialogManager(globalDialogStack, scrollRestoreFunctions)
+
+// 页面卸载时清理所有资源
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeunload', () => globalDialogManager.cleanup())
 }
 
-/**
- * 关闭所有弹窗
- */
-function closeAllDialogs(): void {
-  // 从后往前关闭，避免数组索引问题
-  const dialogIds = globalDialogStack.value.map(dialog => dialog.id)
-  dialogIds.reverse().forEach(id => {
-    closeDialog(id, 'manual')
-  })
-}
-
-/**
- * 获取指定弹窗实例
- */
-function getDialog(id: string): DialogInstance | undefined {
-  return globalDialogStack.value.find(dialog => dialog.id === id)
-}
-
-/**
- * 显示弹窗的防抖处理
- */
+// 防抖显示弹窗函数（保留兼容性）
 const debouncedShowDialog = debounce((options: DialogOptions, resolve: (id: string) => void) => {
-  const dialogId = generateId()
-  
-  // 合并默认选项
-  const mergedOptions = { ...DEFAULT_OPTIONS, ...options }
-
-  // 检查最大弹窗数量限制
-  if (globalDialogStack.value.length >= (mergedOptions.maxCount || 10)) {
-    console.warn(`已达到最大弹窗数量限制: ${mergedOptions.maxCount}`)
-    return
-  }
-
-  // 创建弹窗实例
-  const dialogInstance: DialogInstance = {
-    id: dialogId,
-    options: mergedOptions,
-    isVisible: true,
-    zIndex: (mergedOptions.baseZIndex || 1000) + globalDialogStack.value.length,
-    createdAt: Date.now(),
-    close: () => closeDialog(dialogId, 'manual')
-  }
-
-  // 添加到弹窗栈
-  globalDialogStack.value.push(dialogInstance)
-
-  // 防止页面滚动（仅第一个弹窗时）
-  if (globalDialogStack.value.length === 1) {
-    const restoreScroll = preventBodyScroll()
-    scrollRestoreFunctions.push(restoreScroll)
-  }
-
-  // 添加全局监听器
-  addGlobalListeners()
-
-  // 渲染弹窗到 DOM
-  renderDialog(dialogInstance)
-
-  // 执行打开回调会在 DialogContainer 组件的 onMounted 中处理
-
-  resolve(dialogId)
-}, 50) // 50ms 防抖，防止快速连续调用
+  globalDialogManager.showDialog(options)
+    .then(resolve)
+    .catch(error => console.error(ERROR_MESSAGES.CREATE_FAILED, error))
+}, DIALOG_DEFAULTS.DEBOUNCE_DELAY)
 
 /**
  * useDialog Hook 主函数
  */
 export function useDialog(): UseDialogReturn {
-  
-  /**
-   * 显示弹窗
-   */
-  const showDialog = (options: DialogOptions): Promise<string> => {
-    return new Promise((resolve) => {
-      // 验证必需的参数
-      if (!options.component) {
-        throw new Error('Dialog component is required')
-      }
-
-      debouncedShowDialog(options, resolve)
-    })
-  }
-
-  /**
-   * 当前弹窗数量
-   */
   const count = computed(() => globalDialogStack.value.length)
 
-  /**
-   * 组件卸载时清理
-   */
   onBeforeUnmount(() => {
     // 注意：这里不能直接关闭所有弹窗，因为可能有其他组件实例在使用
     // 全局状态的清理应该由最后一个弹窗关闭时处理
@@ -299,11 +310,11 @@ export function useDialog(): UseDialogReturn {
 
   return {
     dialogStack: readonly(globalDialogStack),
-    showDialog,
-    closeDialog: (id: string) => closeDialog(id, 'manual'),
-    closeTopDialog,
-    closeAllDialogs,
-    getDialog,
+    showDialog: (options: DialogOptions) => globalDialogManager.showDialog(options),
+    closeDialog: (id: string) => globalDialogManager.closeDialog(id, 'manual'),
+    closeTopDialog: () => globalDialogManager.closeTopDialog(),
+    closeAllDialogs: () => globalDialogManager.closeAllDialogs(),
+    getDialog: (id: string) => globalDialogManager.getDialog(id),
     count
   }
 }
@@ -314,120 +325,22 @@ export function useDialog(): UseDialogReturn {
 export function useDialogLocal(): UseDialogReturn {
   const localDialogStack = ref<DialogInstance[]>([])
   const localScrollRestoreFunctions: (() => void)[] = []
-
-  const localCloseDialog = (id: string, reason: CloseReason = 'manual') => {
-    const dialogIndex = localDialogStack.value.findIndex(dialog => dialog.id === id)
-    if (dialogIndex === -1) return
-
-    const dialog = localDialogStack.value[dialogIndex]
-    
-    // 执行关闭前回调
-    if (dialog.options.onBeforeClose) {
-      const shouldClose = dialog.options.onBeforeClose()
-      if (shouldClose === false) return
-      
-      if (shouldClose instanceof Promise) {
-        shouldClose.then(result => {
-          if (result !== false) {
-            performLocalCloseDialog(id, reason)
-          }
-        }).catch(() => {
-          performLocalCloseDialog(id, reason)
-        })
-        return
-      }
-    }
-
-    performLocalCloseDialog(id, reason)
-  }
-
-  const performLocalCloseDialog = (id: string, reason: CloseReason) => {
-    const dialogIndex = localDialogStack.value.findIndex(dialog => dialog.id === id)
-    if (dialogIndex === -1) return
-
-    const dialog = localDialogStack.value[dialogIndex]
-    dialog.isVisible = false
-    localDialogStack.value.splice(dialogIndex, 1)
-
-    // 恢复滚动
-    if (localDialogStack.value.length === 0 && localScrollRestoreFunctions.length > 0) {
-      const restoreScroll = localScrollRestoreFunctions.pop()
-      restoreScroll?.()
-    }
-
-    nextTick(() => {
-      dialog.options.onClose?.()
-    })
-  }
-
-  const showDialog = (options: DialogOptions): Promise<string> => {
-    return new Promise((resolve) => {
-      if (!options.component) {
-        throw new Error('Dialog component is required')
-      }
-
-      const dialogId = generateId()
-      const mergedOptions = { ...DEFAULT_OPTIONS, ...options }
-
-      if (localDialogStack.value.length >= (mergedOptions.maxCount || 10)) {
-        console.warn(`已达到最大弹窗数量限制: ${mergedOptions.maxCount}`)
-        return
-      }
-
-      const dialogInstance: DialogInstance = {
-        id: dialogId,
-        options: mergedOptions,
-        isVisible: true,
-        zIndex: (mergedOptions.baseZIndex || 1000) + localDialogStack.value.length,
-        createdAt: Date.now(),
-        close: () => localCloseDialog(dialogId, 'manual')
-      }
-
-      localDialogStack.value.push(dialogInstance)
-
-      if (localDialogStack.value.length === 1) {
-        const restoreScroll = preventBodyScroll()
-        localScrollRestoreFunctions.push(restoreScroll)
-      }
-
-      nextTick(() => {
-        dialogInstance.options.onOpen?.()
-      })
-
-      resolve(dialogId)
-    })
-  }
-
-  const closeTopDialog = () => {
-    if (localDialogStack.value.length === 0) return
-    const topDialog = localDialogStack.value[localDialogStack.value.length - 1]
-    localCloseDialog(topDialog.id, 'manual')
-  }
-
-  const closeAllDialogs = () => {
-    const dialogIds = localDialogStack.value.map(dialog => dialog.id)
-    dialogIds.reverse().forEach(id => {
-      localCloseDialog(id, 'manual')
-    })
-  }
-
-  const getDialog = (id: string): DialogInstance | undefined => {
-    return localDialogStack.value.find(dialog => dialog.id === id)
-  }
+  
+  const localDialogManager = new DialogManager(localDialogStack, localScrollRestoreFunctions)
 
   const count = computed(() => localDialogStack.value.length)
 
   onBeforeUnmount(() => {
-    closeAllDialogs()
+    localDialogManager.closeAllDialogs()
   })
 
   return {
     dialogStack: readonly(localDialogStack),
-    showDialog,
-    closeDialog: (id: string) => localCloseDialog(id, 'manual'),
-    closeTopDialog,
-    closeAllDialogs,
-    getDialog,
+    showDialog: (options: DialogOptions) => localDialogManager.showDialog(options),
+    closeDialog: (id: string) => localDialogManager.closeDialog(id, 'manual'),
+    closeTopDialog: () => localDialogManager.closeTopDialog(),
+    closeAllDialogs: () => localDialogManager.closeAllDialogs(),
+    getDialog: (id: string) => localDialogManager.getDialog(id),
     count
   }
 }

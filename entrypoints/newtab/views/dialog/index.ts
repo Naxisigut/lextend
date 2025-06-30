@@ -1,36 +1,45 @@
-// 导出核心 Hook
+// 主要 hooks 和组件
 export { useDialog, useDialogLocal, getGlobalDialogState } from './useDialog'
-
-// 导出组件
 export { default as DialogContainer } from './DialogContainer.vue'
 
-// 导出类型定义
-export type {
-  DialogOptions,
-  DialogInstance,
-  UseDialogReturn,
-  DialogDefaultOptions,
-  CloseReason,
-  DialogCloseEvent,
-  FocusTrapOptions,
-  DialogAnimationState,
-  DialogPosition,
-  DialogContainerProps,
-  DialogContainerEmits
-} from './types'
+// 类型定义
+export type * from './types'
 
-// 导出工具函数（部分）
-export {
-  generateId,
-  getFocusableElements,
-  FocusTrap,
-  preventBodyScroll,
-  isClickOutside,
-  delay,
-  debounce,
+// 工具函数
+export { 
+  generateId, 
+  FocusTrap, 
+  preventBodyScroll, 
+  debounce, 
   throttle,
-  supportsDialog
+  toCssValue,
+  mergeOptions
 } from './utils'
+
+// 常量配置
+export {
+  ANIMATION_CONSTANTS,
+  DIALOG_DEFAULTS,
+  CSS_CLASSES,
+  ERROR_MESSAGES,
+  FOCUS_SELECTORS
+} from './constants'
+
+// 辅助函数
+export {
+  calculateAnimationDuration,
+  buildCSSClasses,
+  buildAnimationClasses,
+  createDialogInstance,
+  validateDialogOptions,
+  checkMaxDialogCount,
+  createAnimationListener,
+  executeAnimation,
+  getTopDialog,
+  findDialogInStack,
+  getComponentType,
+  safeExecuteCallback
+} from './helpers'
 
 // 导出样式文件
 import './style.css'

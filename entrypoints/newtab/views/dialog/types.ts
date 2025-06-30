@@ -79,6 +79,8 @@ export interface DialogOptions {
   onBeforeClose?: () => boolean | Promise<boolean>
 }
 
+
+
 /**
  * 弹窗实例数据
  */

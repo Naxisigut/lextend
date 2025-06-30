@@ -48,14 +48,14 @@
         <div class="dialog-body">
           <!-- 使用 component 标签渲染动态组件 -->
           <component 
-            v-if="isVueComponent(dialogData.options.component)"
+            v-if="isVueComponent"
             :is="dialogData.options.component"
             v-bind="dialogData.options.props"
             @close="handleComponentClose"
           />
           
           <!-- 使用 render 函数渲染 -->
-          <div v-else-if="isRenderFunction(dialogData.options.component)" ref="renderContainer">
+          <div v-else-if="isRenderFunction" ref="renderContainer">
             <!-- render 函数的内容会通过 JavaScript 动态插入 -->
           </div>
           
@@ -93,6 +93,15 @@ import {
 } from 'vue'
 import type { DialogContainerProps, DialogCloseEvent, CloseReason, DialogAnimationState } from './types'
 import { FocusTrap, isClickOutside } from './utils'
+import { CSS_CLASSES, FOCUS_SELECTORS } from './constants'
+import { 
+  buildCSSClasses, 
+  buildAnimationClasses, 
+  calculateAnimationDuration, 
+  executeAnimation,
+  getComponentType,
+  safeExecuteCallback
+} from './helpers'
 
 // Props
 const props = defineProps<DialogContainerProps>()
@@ -118,21 +127,19 @@ let focusTrap: FocusTrap | null = null
 const contentStyles = computed(() => {
   const styles: Record<string, any> = {}
   
-  if (props.dialogData.options.width) {
-    styles.width = typeof props.dialogData.options.width === 'number' 
-      ? `${props.dialogData.options.width}px` 
-      : props.dialogData.options.width
+  const { width, height, style } = props.dialogData.options
+  
+  if (width) {
+    styles.width = typeof width === 'number' ? `${width}px` : width
   }
   
-  if (props.dialogData.options.height) {
-    styles.height = typeof props.dialogData.options.height === 'number' 
-      ? `${props.dialogData.options.height}px` 
-      : props.dialogData.options.height
+  if (height) {
+    styles.height = typeof height === 'number' ? `${height}px` : height
   }
   
   // 合并用户自定义样式
-  if (props.dialogData.options.style) {
-    Object.assign(styles, props.dialogData.options.style)
+  if (style) {
+    Object.assign(styles, style)
   }
   
   return styles
@@ -140,91 +147,63 @@ const contentStyles = computed(() => {
 
 // 计算遮罩层类名
 const overlayClasses = computed(() => {
-  const classes = ['dialog-overlay']
+  const { animationSpeed } = props.dialogData.options
   
-  // 添加动画状态类
-  if (animationState.value === 'entering') {
-    classes.push('dialog--entering')
-  } else if (animationState.value === 'leaving') {
-    classes.push('dialog--leaving')
-  }
-  
-  // 添加动画速度类
-  const speed = props.dialogData.options.animationSpeed
-  if (speed === 'fast') {
-    classes.push('dialog--fast')
-  } else if (speed === 'slow') {
-    classes.push('dialog--slow')
-  }
-  
-  return classes
+  return buildCSSClasses(CSS_CLASSES.BASE.overlay, [
+    ...buildAnimationClasses(animationState.value, animationSpeed).map(className => ({
+      condition: Boolean(className),
+      className
+    }))
+  ])
 })
 
 // 计算内容容器类名
 const contentClasses = computed(() => {
-  const classes = ['dialog-content']
+  const { className, animation, animationSpeed } = props.dialogData.options
+  const animationType = animation || 'default'
   
-  // 添加用户自定义类名
-  if (props.dialogData.options.className) {
-    classes.push(props.dialogData.options.className)
-  }
+  const conditionalClasses = [
+    // 用户自定义类名
+    {
+      condition: Boolean(className),
+      className: className || ''
+    },
+    // 动画相关类名
+    ...buildAnimationClasses(animationState.value, animationSpeed, animationType).map(cls => ({
+      condition: Boolean(cls),
+      className: cls
+    }))
+  ]
   
-  // 添加动画状态类
-  if (animationState.value === 'entering') {
-    classes.push('dialog--entering')
-  } else if (animationState.value === 'leaving') {
-    classes.push('dialog--leaving')
-  }
-  
-  // 添加动画类型类
-  const animation = props.dialogData.options.animation || 'default'
-  if (animation !== 'none' && animation !== 'default') {
-    classes.push(`dialog--${animation}`)
-  }
-  
-  // 添加动画速度类
-  const speed = props.dialogData.options.animationSpeed
-  if (speed === 'fast') {
-    classes.push('dialog--fast')
-  } else if (speed === 'slow') {
-    classes.push('dialog--slow')
-  }
-  
-  // 添加弹跳效果类
-  if (animation === 'bounce') {
-    classes.push('dialog--bounce')
-  }
-  
-  return classes
+  return buildCSSClasses(CSS_CLASSES.BASE.content, conditionalClasses)
 })
 
-// 类型检查工具函数
-const isVueComponent = (component: any): boolean => {
-  return typeof component === 'object' && (component.setup || component.render || component.template)
-}
+// 组件类型判断
+const componentType = computed(() => getComponentType(props.dialogData.options.component))
+const isVueComponent = computed(() => componentType.value === 'vue-component')
+const isRenderFunction = computed(() => componentType.value === 'render-function')
 
-const isRenderFunction = (component: any): boolean => {
-  return typeof component === 'function'
+// 事件处理器工厂
+const createEventHandler = (reason: CloseReason) => {
+  return () => {
+    const option = reason === 'mask' ? 'maskClosable' : 
+                   reason === 'escape' ? 'escClosable' : 
+                   'closable'
+    
+    if (props.dialogData.options[option] !== false) {
+      emitCloseEvent(reason)
+    }
+  }
 }
 
 // 事件处理
-const handleMaskClick = (event: MouseEvent) => {
-  if (props.dialogData.options.maskClosable !== false) {
-    emitCloseEvent('mask')
-  }
-}
-
-const handleCloseClick = () => {
-  emitCloseEvent('button')
-}
-
-const handleComponentClose = () => {
-  emitCloseEvent('manual')
-}
+const handleMaskClick = createEventHandler('mask')
+const handleCloseClick = createEventHandler('button')
+const handleComponentClose = () => emitCloseEvent('manual')
 
 const handleKeyDown = (event: KeyboardEvent) => {
-  if (event.key === 'Escape' && props.dialogData.options.escClosable !== false) {
-    emitCloseEvent('escape')
+  if (event.key === 'Escape') {
+    createEventHandler('escape')()
   }
 }
 
@@ -234,47 +213,41 @@ const renderDynamicContent = async () => {
   
   const { component } = props.dialogData.options
   
-  // 处理 render 函数
-  if (isRenderFunction(component) && renderContainer.value) {
-    try {
+  try {
+    // 处理 render 函数
+    if (isRenderFunction.value && renderContainer.value) {
       const result = (component as Function)()
       
       if (result && typeof result === 'object' && result.type) {
-        // 这是一个 VNode
         vueRender(result, renderContainer.value)
       } else {
-        // 这是普通的返回值
         renderContainer.value.innerHTML = String(result)
       }
-    } catch (error) {
-      console.error('渲染函数执行失败:', error)
-      renderContainer.value.innerHTML = '<div>渲染失败</div>'
     }
-  }
-  
-  // 处理 VNode
-  else if (component && typeof component === 'object' && component.type && vnodeContainer.value) {
-    try {
+    // 处理 VNode
+    else if (component && typeof component === 'object' && component.type && vnodeContainer.value) {
       vueRender(component as VNode, vnodeContainer.value)
-    } catch (error) {
-      console.error('VNode 渲染失败:', error)
-      vnodeContainer.value.innerHTML = '<div>渲染失败</div>'
+    }
+  } catch (error) {
+    console.error('动态内容渲染失败:', error)
+    const container = renderContainer.value || vnodeContainer.value
+    if (container) {
+      container.innerHTML = '<div>渲染失败</div>'
     }
   }
 }
 
-// 初始化焦点陷阱
+// 焦点陷阱管理
 const initFocusTrap = () => {
   if (dialogContentRef.value) {
     focusTrap = new FocusTrap(dialogContentRef.value, {
       enabled: true,
-      initialFocus: '.dialog-close-btn, .dialog-btn, input, textarea, select, button, [tabindex]'
+      initialFocus: FOCUS_SELECTORS.INITIAL_FOCUS
     })
     focusTrap.activate()
   }
 }
 
-// 清理焦点陷阱
 const cleanupFocusTrap = () => {
   if (focusTrap) {
     focusTrap.deactivate()
@@ -282,73 +255,55 @@ const cleanupFocusTrap = () => {
   }
 }
 
-// 动画相关函数
+// 动画执行
 const startEnterAnimation = async () => {
-  const animation = props.dialogData.options.animation || 'default'
+  const { animation, animationDuration, animationSpeed } = props.dialogData.options
   
   if (animation === 'none') {
-    // 无动画，直接设置为已进入状态
     animationState.value = 'entered'
     return
   }
   
-  // 设置初始状态
-  animationState.value = 'entering'
+  const duration = calculateAnimationDuration(animationDuration, animationSpeed)
   
-  // 等待动画完成
-  await new Promise<void>((resolve) => {
-    const duration = props.dialogData.options.animationDuration || 
-                    (props.dialogData.options.animationSpeed === 'fast' ? 80 : 
-                     props.dialogData.options.animationSpeed === 'slow' ? 250 : 150)
-    
-    setTimeout(() => {
-      animationState.value = 'entered'
-      resolve()
-    }, duration)
-  })
+  await executeAnimation(
+    dialogContentRef.value || null,
+    duration,
+    (state) => { animationState.value = state as DialogAnimationState },
+    'entering',
+    'entered'
+  )
 }
 
 const startLeaveAnimation = async () => {
-  const animation = props.dialogData.options.animation || 'default'
+  const { animation, animationDuration, animationSpeed } = props.dialogData.options
   
   if (animation === 'none') {
-    // 无动画，直接设置为已离开状态
     animationState.value = 'left'
     return
   }
   
-  // 设置离开状态
-  animationState.value = 'leaving'
+  const duration = calculateAnimationDuration(animationDuration, animationSpeed)
   
-  // 等待动画完成
-  await new Promise<void>((resolve) => {
-    const duration = props.dialogData.options.animationDuration || 
-                    (props.dialogData.options.animationSpeed === 'fast' ? 80 : 
-                     props.dialogData.options.animationSpeed === 'slow' ? 250 : 150)
-    
-    setTimeout(() => {
-      animationState.value = 'left'
-      resolve()
-    }, duration)
-  })
+  await executeAnimation(
+    dialogContentRef.value || null,
+    duration,
+    (state) => { animationState.value = state as DialogAnimationState },
+    'leaving',
+    'left'
+  )
 }
 
 // 修改关闭处理，加入动画
 const emitCloseEvent = async (reason: CloseReason) => {
-  // 如果有 onBeforeClose 回调，先执行
-  if (props.dialogData.options.onBeforeClose) {
-    const shouldClose = props.dialogData.options.onBeforeClose()
-    
-    if (shouldClose === false) {
-      return
-    }
-    
-    if (shouldClose instanceof Promise) {
-      const result = await shouldClose.catch(() => true)
-      if (result === false) {
-        return
-      }
-    }
+  // 执行关闭前回调
+  const shouldClose = await safeExecuteCallback(
+    props.dialogData.options.onBeforeClose, 
+    true
+  )
+  
+  if (shouldClose === false) {
+    return
   }
   
   // 执行离场动画
@@ -371,11 +326,10 @@ onMounted(async () => {
   initFocusTrap()
   
   // 执行打开回调
-  props.dialogData.options.onOpen?.()
+  await safeExecuteCallback(props.dialogData.options.onOpen, undefined)
 })
 
 onBeforeUnmount(() => {
-  // 清理焦点陷阱
   cleanupFocusTrap()
 })
 </script>
