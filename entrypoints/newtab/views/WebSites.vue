@@ -1,11 +1,6 @@
 <template>
   <div class="p-6">
-    <div class="space-y-8 relative">
-      <div class="absolute top-0 right-0">
-        <LiquidGlassWrapper class="rounded-full hover:scale-105" @click.stop="onOpen('addNewGroup')">
-          <div class="py-1 px-2">add new group</div>
-        </LiquidGlassWrapper>
-      </div>
+    <div class="space-y-8">
       <div v-for="group in allData" :key="group.groupId" class="space-y-4">
         <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-300" @contextmenu.prevent="onGroupContextMenu($event, group)">{{ group.groupName }}</h2>
         <div class="grid grid-cols-[repeat(auto-fill,minmax(120px,1fr))] auto-rows-[120px] ">

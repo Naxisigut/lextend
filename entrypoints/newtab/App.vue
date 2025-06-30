@@ -2,7 +2,7 @@
   <div class="container min-h-screen">
     <router-view />
     
-    <Dialog title="搜索" v-model:open="isOpen":showHeader="false":showFooter="false">
+    <Dialog title="搜索" v-model:open="isOpen" :showHeader="false" :showFooter="false">
       <SearchPanel />
     </Dialog>
   </div>
@@ -27,9 +27,9 @@ useEventListener(document, 'keydown', (e) => {
 
 <style lang="scss">
 body {
-  background: url("/assets/flowers.jpg") center center;
+  // background: url("/assets/flowers.jpg") center center;
   background-size: 500px;
-  animation: moveBackground 180s linear infinite;
+  // animation: moveBackground 180s linear infinite;
 }
 @keyframes moveBackground {
   from {
