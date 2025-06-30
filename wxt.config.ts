@@ -9,6 +9,7 @@ export default defineConfig({
     plugins: [UnoCSS()],
     resolve: {
       alias: {
+        '@': path.resolve(__dirname, './'),
         '@newtab': path.resolve(__dirname, 'entrypoints/newtab'),
         '@popup': path.resolve(__dirname, 'entrypoints/popup'),
       },
