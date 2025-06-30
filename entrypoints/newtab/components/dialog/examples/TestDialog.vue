@@ -77,7 +77,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, h, defineComponent } from 'vue'
 import { useDialog } from '../index'
 // 导入真正的Vue单文件组件 - 这才是正确的用法！
@@ -532,7 +532,7 @@ const testSlideAnimations = async () => {
          await showDialog({
        component: slideTestComponent,
        title: `滑动动画 - ${direction.name}`,
-       animation: direction.type,
+       animation: direction.type as any,
        animationSpeed: 'normal'
      })
   }
@@ -590,7 +590,7 @@ const testAnimationSpeeds = async () => {
        component: speedTestComponent,
        title: `动画速度 - ${speed.name}`,
        animation: 'default',
-       animationSpeed: speed.type
+       animationSpeed: speed.type as any
      })
   }
   

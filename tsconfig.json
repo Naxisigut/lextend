@@ -1,3 +1,11 @@
 {
-  "extends": "./.wxt/tsconfig.json"
+  "extends": "./.wxt/tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "@newtab": ["./entrypoints/newtab"],
+      "@newtab/*": ["./entrypoints/newtab/*"],
+      "@popup": ["./entrypoints/popup"],
+      "@popup/*": ["./entrypoints/popup/*"]
+    }
+  }
 }
